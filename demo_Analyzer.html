@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>hi!pa Financial Analyzer — Live Demo</title>
+
+<!-- Fontes -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<!-- Ícones -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+/* ================================================================
+ *  DEMO · hi!pa Financial Analyzer
+ *  Estilos simplificados mas fiéis ao styles.css original
+ * ================================================================ */
+:root{
+    --ink-900:#0b1220; --ink-800:#1a2436; --ink-700:#334155;
+    --ink-600:#475569; --ink-500:#64748b; --ink-400:#94a3b8;
+    --ink-300:#cbd5e1; --ink-200:#e2e8f0; --ink-150:#eaeff5;
+    --ink-100:#f1f5f9; --ink-50:#f8fafc;
+    --accent:#f59e0b; --accent-dark:#d97706; --accent-deep:#b45309; --accent-soft:#fef3c7;
+    --success:#10b981; --success-deep:#047857;
+    --danger:#ef4444; --danger-deep:#b91c1c;
+    --info:#3b82f6; --info-deep:#1d4ed8;
+    --row-revenue:#f3faf6; --row-cost:#ffffff; --row-result:#eef4fc;
+    --col-prior:#f6f7f9; --col-sim:#fffbeb;
+    --bg:#f3f5f9; --surface:#ffffff;
+    --card-radius:16px;
+    --card-shadow:0 1px 2px rgba(11,18,32,0.04), 0 8px 28px -6px rgba(11,18,32,0.08);
+    --ring:0 0 0 3px rgba(245,158,11,0.22);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+    background:
+        radial-gradient(1200px 380px at 50% -120px, rgba(245,158,11,0.07), transparent 70%),
+        var(--bg);
+    background-repeat:no-repeat;
+    font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    font-feature-settings:'cv11','ss01','tnum';
+    color:var(--ink-900);
+    font-size:0.875rem;
+    line-height:1.55;
+    padding:0 0 2rem;
+    -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent-soft);color:var(--ink-900);}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ---------- TOPBAR ---------- */
+.topbar{
+    background:linear-gradient(180deg,#111a2e 0%,var(--ink-900) 100%);
+    padding:0.85rem 2rem;
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:1rem;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    box-shadow:0 1px 0 rgba(245,158,11,0.35), 0 10px 30px -10px rgba(0,0,0,0.35);
+    position:sticky; top:0; z-index:100;
+    margin-bottom:1.75rem;
+}
+.topbar-brand{display:flex; align-items:center; gap:1rem; flex-wrap:wrap;}
+.logo-area{display:flex; align-items:center; gap:0.9rem;}
+.logo-wrapper{
+    background:white; border-radius:10px; padding:0.4rem 0.8rem;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 1px rgba(255,255,255,0.1), 0 4px 12px rgba(0,0,0,0.25);
+    min-width:56px; min-height:44px;
+}
+.logo-fallback{
+    font-size:1.05rem; font-weight:800; color:var(--ink-900);
+    letter-spacing:-0.03em;
+}
+.brand-text{display:flex; flex-direction:column; color:white;}
+.brand-name{font-size:1rem; font-weight:700; letter-spacing:-0.015em; white-space:nowrap;}
+.brand-sub{
+    font-size:0.66rem; color:var(--ink-400); font-weight:600;
+    letter-spacing:0.08em; text-transform:uppercase; margin-top:0.25rem;
+}
+.topbar-actions{display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;}
+.topbar-select{display:flex; align-items:center; gap:0.45rem;}
+.topbar-select label{
+    font-size:0.66rem; font-weight:600; color:var(--ink-400);
+    text-transform:uppercase; letter-spacing:0.06em; white-space:nowrap;
+}
+.topbar-select select{
+    appearance:none; -webkit-appearance:none;
+    font-family:inherit; font-size:0.8rem; font-weight:600;
+    padding:0.5rem 2rem 0.5rem 0.75rem;
+    border-radius:9px;
+    border:1px solid rgba(255,255,255,0.12);
+    background-color:rgba(255,255,255,0.06);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 0.65rem center;
+    color:white; cursor:pointer;
+    transition:background-color 0.15s, border-color 0.15s;
+}
+.topbar-select select:hover{background-color:rgba(255,255,255,0.11); border-color:rgba(255,255,255,0.2);}
+.topbar-select select:focus{outline:none; border-color:var(--accent); box-shadow:var(--ring);}
+.topbar-select select option{background:var(--ink-900); color:white;}
+.btn{
+    border:none; font-family:inherit; font-size:0.8rem; font-weight:600;
+    padding:0.5rem 0.9rem; border-radius:9px; cursor:pointer;
+    transition:background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    display:inline-flex; align-items:center; gap:0.4rem; white-space:nowrap;
+}
+.btn:active{transform:translateY(1px);}
+.btn-ghost{
+    background:rgba(255,255,255,0.06); color:var(--ink-200);
+    border:1px solid rgba(255,255,255,0.12);
+}
+.btn-ghost:hover{background:rgba(255,255,255,0.12); color:white; border-color:rgba(255,255,255,0.2);}
+.btn-accent{
+    background:linear-gradient(180deg,#fbbf24 0%, var(--accent) 100%);
+    color:var(--ink-900);
+    box-shadow:0 1px 0 rgba(255,255,255,0.35) inset, 0 4px 14px rgba(245,158,11,0.35);
+}
+.btn-accent:hover{
+    background:linear-gradient(180deg,#f59e0b 0%, var(--accent-dark) 100%);
+    transform:translateY(-1px);
+    box-shadow:0 1px 0 rgba(255,255,255,0.3) inset, 0 8px 20px rgba(245,158,11,0.4);
+}
+
+/* ---------- CONTAINER ---------- */
+.app-container{max-width:1400px; margin:0 auto; padding:0 1.75rem;}
+
+/* ---------- HEADER ---------- */
+.app-header{
+    background:var(--surface);
+    border-radius:var(--card-radius);
+    padding:1.4rem 1.75rem;
+    box-shadow:var(--card-shadow);
+    border:1px solid var(--ink-200);
+    margin-bottom:1rem;
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    gap:1rem;
+}
+.field-group{display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;}
+.field-group label{
+    font-size:0.66rem; font-weight:700; color:var(--ink-500);
+    letter-spacing:0.07em; text-transform:uppercase; white-space:nowrap;
+}
+.field-group input.company-input{
+    font-size:1.2rem; font-weight:700; letter-spacing:-0.015em;
+    border:1px solid transparent; border-bottom:1px solid var(--ink-200);
+    border-radius:10px; padding:0.5rem 0.9rem; background:transparent;
+    color:var(--ink-900); min-width:280px; flex:1; max-width:520px;
+    transition:background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    font-family:inherit;
+}
+.field-group input.company-input:hover{background:var(--ink-50); border-color:var(--ink-200);}
+.field-group input.meta-input{
+    font-size:0.85rem; font-weight:500;
+    border:1px solid var(--ink-200); border-radius:9px;
+    padding:0.45rem 0.75rem; background:var(--ink-50); color:var(--ink-900);
+    transition:background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    font-family:inherit; font-variant-numeric:tabular-nums;
+}
+.field-group input.meta-input.narrow{width:130px;}
+.field-group input.meta-input.medium{width:170px;}
+.field-group input.meta-input.wide{width:200px;}
+.field-group input:focus{
+    outline:none; border-color:var(--accent); background:white; box-shadow:var(--ring);
+}
+
+/* ---------- STATUS BANNER ---------- */
+.status-banner{
+    background:var(--surface);
+    border-radius:var(--card-radius);
+    padding:1.1rem 1.75rem;
+    margin-bottom:1.5rem;
+    box-shadow:var(--card-shadow);
+    border:1px solid var(--ink-200);
+    border-left:5px solid var(--accent);
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    gap:1rem;
+}
+.status-banner.profit{border-left-color:var(--success);}
+.status-banner.loss{border-left-color:var(--danger);}
+.status-banner .status-label{
+    font-size:0.72rem; font-weight:700; color:var(--ink-500);
+    text-transform:uppercase; letter-spacing:0.08em;
+}
+.status-banner .status-value{
+    font-size:1.9rem; font-weight:800; letter-spacing:-0.03em;
+    line-height:1.1; font-variant-numeric:tabular-nums;
+}
+.status-banner .status-value.profit{color:var(--success-deep);}
+.status-banner .status-value.loss{color:var(--danger-deep);}
+.status-banner .status-detail{font-size:0.85rem; color:var(--ink-500); font-weight:500;}
+#statusBadge{
+    display:inline-flex; align-items:center; gap:0.45rem;
+    padding:0.35rem 0.95rem; border-radius:999px;
+    font-size:0.75rem; font-weight:700; letter-spacing:0.04em;
+    text-transform:uppercase;
+}
+#statusBadge::before{
+    content:""; width:7px; height:7px; border-radius:50%; background:currentColor;
+}
+
+/* ---------- TABS ---------- */
+.tabs{
+    display:flex; gap:0.25rem; margin-bottom:1.5rem; padding:0.3rem;
+    background:var(--ink-150); border:1px solid var(--ink-200);
+    border-radius:13px; width:fit-content;
+}
+.tab-btn{
+    background:transparent; border:1px solid transparent;
+    padding:0.55rem 1.4rem; font-weight:600; font-size:0.84rem;
+    color:var(--ink-500); cursor:pointer; border-radius:10px;
+    transition:background 0.18s, color 0.18s, box-shadow 0.18s;
+    font-family:inherit;
+}
+.tab-btn:hover{color:var(--ink-900); background:rgba(255,255,255,0.6);}
+.tab-btn.active{
+    background:var(--surface); color:var(--ink-900);
+    border-color:var(--ink-200);
+    box-shadow:0 1px 2px rgba(11,18,32,0.08), 0 4px 10px -2px rgba(11,18,32,0.08);
+}
+.tab-btn.active::after{
+    content:""; display:inline-block; width:6px; height:6px;
+    margin-left:0.55rem; border-radius:50%; background:var(--accent);
+    vertical-align:middle;
+}
+.page{display:none;}
+.page.active{display:block; animation:pageIn 0.28s ease-out;}
+@keyframes pageIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+
+/* ---------- CARDS ---------- */
+.card{
+    background:var(--surface);
+    border-radius:var(--card-radius);
+    padding:1.6rem 1.9rem;
+    box-shadow:var(--card-shadow);
+    border:1px solid var(--ink-200);
+    margin-bottom:1.5rem;
+}
+.card h3{font-weight:700; font-size:1.02rem; margin-bottom:0.9rem; color:var(--ink-900); letter-spacing:-0.015em;}
+.card h4{font-weight:600; font-size:0.95rem; margin-bottom:0.2rem; color:var(--ink-900);}
+.card .sub-hint{font-size:0.82rem; color:var(--ink-500); margin-bottom:1rem; font-weight:500;}
+
+/* ---------- TABELAS ---------- */
+.table-wrap{
+    overflow-x:auto; margin:0.6rem 0 0.8rem 0;
+    border:1px solid var(--ink-200); border-radius:14px;
+    background:var(--surface);
+}
+table{width:100%; border-collapse:separate; border-spacing:0; font-size:0.85rem;}
+th{
+    background:var(--ink-50); color:var(--ink-500); font-weight:700;
+    padding:0.8rem 0.9rem; text-align:center;
+    border-bottom:1px solid var(--ink-200);
+    font-size:0.68rem; text-transform:uppercase; letter-spacing:0.07em;
+    white-space:nowrap;
+}
+th:first-child{text-align:left; padding-left:1.1rem;}
+td{padding:0.4rem 0.7rem; border-bottom:1px solid var(--ink-150); vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tr:hover td{background-image:linear-gradient(rgba(11,18,32,0.025), rgba(11,18,32,0.025));}
+tr.row-revenue td{background-color:var(--row-revenue);}
+tr.row-cost td{background-color:var(--row-cost);}
+tr.row-result td{background-color:var(--row-result); border-top:1px solid var(--ink-300); border-bottom:none;}
+td.rubric{border-left:3px solid transparent; padding-left:1rem;}
+tr.row-revenue td.rubric{border-left-color:var(--success); color:var(--success-deep); font-weight:600;}
+tr.row-cost td.rubric{border-left-color:#f0a3a3; color:var(--ink-800);}
+tr.row-result td.rubric{border-left-color:var(--info); font-weight:700; color:var(--info-deep);}
+tr.row-result td.num{font-weight:800;}
+tr td.col-prior,
+tr.row-revenue td.col-prior,
+tr.row-cost td.col-prior,
+tr.row-result td.col-prior{background-color:var(--col-prior) !important; color:var(--ink-500);}
+tr td.col-sim,
+tr.row-revenue td.col-sim,
+tr.row-cost td.col-sim,
+tr.row-result td.col-sim{background-color:var(--col-sim) !important; color:var(--accent-deep);}
+.num{text-align:right; font-variant-numeric:tabular-nums; font-weight:600; color:var(--ink-800);}
+.rubric{font-weight:500; color:var(--ink-900); white-space:nowrap; min-width:200px; font-size:0.83rem;}
+.trend-up{color:var(--success) !important; font-weight:700;}
+.trend-down{color:var(--danger) !important; font-weight:700;}
+.neutral{color:var(--ink-400);}
+
+/* ---------- INPUTS ---------- */
+.table-input{
+    width:104px; padding:0.4rem 0.6rem;
+    border:1px solid rgba(11,18,32,0.08); border-radius:8px;
+    text-align:right; font-size:0.85rem; font-family:inherit;
+    background:rgba(255,255,255,0.85);
+    transition:border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    font-variant-numeric:tabular-nums; cursor:text; font-weight:600;
+    min-height:32px; color:var(--ink-900);
+}
+.table-input:hover{border-color:var(--ink-400); background:white;}
+.table-input:focus{outline:none; border-color:var(--accent); background:white; box-shadow:var(--ring);}
+.edit-hint{
+    font-size:0.7rem; color:var(--ink-500); background:var(--ink-100);
+    border:1px solid var(--ink-200); padding:0.25rem 0.85rem;
+    border-radius:999px; display:inline-block; margin-bottom:0.5rem; font-weight:600;
+}
+
+/* ---------- GROWTH CONTROL ---------- */
+.growth-control{
+    display:inline-flex; align-items:center; gap:0.6rem; flex-wrap:wrap;
+    margin:0.2rem 0 0.9rem 0; padding:0.5rem 0.9rem;
+    background:var(--col-sim); border:1px solid #f6e3a6; border-radius:12px;
+}
+.growth-control label{font-size:0.78rem; font-weight:600; color:var(--accent-deep);}
+.growth-control input{
+    width:84px; padding:0.35rem 0.5rem; border:1px solid #ecd58a;
+    border-radius:8px; text-align:center; font-size:0.85rem;
+    font-family:inherit; background:white; font-weight:700; color:var(--ink-900);
+}
+.growth-control input:focus{outline:none; border-color:var(--accent); box-shadow:var(--ring);}
+
+/* ---------- CHART ---------- */
+.chart-box{position:relative; max-width:400px; height:330px; margin:0.5rem auto;}
+.chart-box canvas{width:100% !important; height:100% !important; display:block;}
+
+/* ---------- GRIDS ---------- */
+.summary-grid, .tax-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));
+    gap:0.9rem; margin:1.2rem 0 0.5rem 0;
+}
+.summary-item, .tax-item{
+    background:var(--surface); border-radius:14px; padding:1rem 1.2rem;
+    border:1px solid var(--ink-200); box-shadow:0 1px 2px rgba(11,18,32,0.05);
+    transition:border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+    position:relative;
+}
+.summary-item:hover, .tax-item:hover{
+    border-color:var(--ink-300); transform:translateY(-1px);
+    box-shadow:0 1px 2px rgba(11,18,32,0.04), 0 2px 8px rgba(11,18,32,0.04);
+}
+.summary-item .label, .tax-item .label{
+    font-size:0.66rem; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--ink-500); font-weight:700;
+}
+.summary-item .value, .tax-item .value{
+    font-size:1.35rem; font-weight:800; letter-spacing:-0.02em;
+    margin-top:0.35rem; color:var(--ink-900); font-variant-numeric:tabular-nums;
+}
+.summary-item.highlight, .tax-item.highlight{
+    background:linear-gradient(160deg,#fffbeb 0%, #ffffff 65%);
+    border-color:#f6d98a;
+    box-shadow:0 1px 2px rgba(245,158,11,0.08), 0 8px 20px -8px rgba(245,158,11,0.25);
+}
+.summary-item.highlight::before, .tax-item.highlight::before{
+    content:""; position:absolute; left:0; top:14px; bottom:14px;
+    width:3px; border-radius:0 3px 3px 0; background:var(--accent);
+}
+.tax-item .value.tax-pay{color:var(--danger-deep);}
+.tax-item .value.tax-receive{color:var(--success-deep);}
+.tax-item .rate{font-size:0.76rem; color:var(--ink-400); margin-top:0.15rem; font-weight:500;}
+
+/* ---------- FOOTER + NOTA ---------- */
+.app-footer{
+    margin-top:2rem; padding:1.25rem 0;
+    border-top:1px solid var(--ink-200);
+    font-size:0.75rem; color:var(--ink-500); font-weight:500;
+    display:flex; flex-wrap:wrap; justify-content:space-between; gap:0.5rem;
+}
+.footnote{
+    font-size:0.8rem; color:var(--ink-600);
+    background:#f5f9ff; border:1px solid #dbe7f8;
+    padding:0.95rem 1.2rem; border-radius:14px;
+    border-left:4px solid var(--info);
+    margin-top:1.5rem; line-height:1.6;
+}
+.footnote strong{color:var(--ink-900); font-weight:700;}
+
+/* ---------- DEMO BANNER ---------- */
+.demo-banner{
+    background:linear-gradient(90deg, #fff7e6 0%, #fffbeb 100%);
+    border:1px solid #f6d98a;
+    border-left:4px solid var(--accent);
+    border-radius:12px;
+    padding:0.75rem 1.2rem;
+    margin-bottom:1.25rem;
+    font-size:0.82rem;
+    color:#7a5f1a;
+    display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;
+}
+.demo-banner strong{color:var(--accent-deep); font-weight:800;}
+.demo-banner .badge{
+    background:var(--accent); color:var(--ink-900);
+    font-size:0.65rem; font-weight:800; padding:0.15rem 0.55rem;
+    border-radius:999px; letter-spacing:0.05em;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:900px){
+    .topbar{padding:0.8rem 1rem; flex-direction:column; align-items:stretch;}
+    .topbar-brand{justify-content:space-between;}
+    .topbar-actions{justify-content:stretch;}
+    .topbar-select{flex:1; flex-direction:column; align-items:stretch;}
+    .topbar-select select{width:100%;}
+    .app-container{padding:0 1rem;}
+}
+@media (max-width:700px){
+    .app-container{padding:0 0.6rem;}
+    .app-header{padding:1rem; flex-direction:column; align-items:stretch;}
+    .field-group{flex-direction:column; align-items:stretch;}
+    .field-group input{width:100% !important;}
+    .btn{width:100%; justify-content:center;}
+    .tabs{width:100%;}
+    .tab-btn{flex:1; padding:0.55rem 0.9rem;}
+    .status-banner{padding:1rem 1.2rem;}
+    .status-banner .status-value{font-size:1.6rem;}
+    .card{padding:1.2rem 1rem;}
+    th,td{padding:0.35rem 0.4rem; font-size:0.7rem;}
+    .table-input{width:68px; font-size:0.7rem; padding:0.3rem 0.35rem;}
+    .rubric{min-width:110px; font-size:0.7rem;}
+    .summary-grid, .tax-grid{grid-template-columns:1fr 1fr;}
+    .brand-sub{display:none;}
+}
+
+/* ================================================================
+ *  IMPRESSÃO — A4 LANDSCAPE
+ *  (igual ao styles.css original, para o PDF sair bem formatado)
+ * ================================================================ */
+@media print {
+    @page { size: A4 landscape; margin: 0.6cm; }
+
+    body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 10px !important;
+    }
+
+    .app-container { max-width: 100% !important; padding: 0.15cm 0.3cm !important; }
+
+    /* Esconder UI de interação */
+    .topbar, .btn, .btn-ghost, .btn-accent, .tab-btn, .edit-hint,
+    .app-header label, .topbar-select label, .field-group label,
+    .growth-control label, .demo-banner, .notification {
+        display: none !important;
+    }
+
+    /* Header compacto */
+    .app-header {
+        border-radius: 4px !important;
+        border: 1px solid #ddd !important;
+        padding: 0.3rem 0.6rem !important;
+        margin-bottom: 0.4rem !important;
+        box-shadow: none !important;
+    }
+    .app-header input {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        width: auto !important;
+        min-width: auto !important;
+    }
+
+    /* Cards compactos */
+    .card {
+        border: 1px solid #ddd !important;
+        border-radius: 4px !important;
+        padding: 0.4rem 0.6rem !important;
+        margin-bottom: 0.5rem !important;
+        page-break-inside: avoid;
+        box-shadow: none !important;
+    }
+
+    /* Todas as páginas visíveis, cada uma em folha própria */
+    .page { display: block !important; page-break-after: always; }
+    .page:last-child { page-break-after: avoid; }
+
+    /* Tabelas mais compactas */
+    table { font-size: 10px !important; }
+    th { padding: 5px 6px !important; font-size: 9.5px !important; }
+    td { padding: 4px 6px !important; font-size: 10px !important; }
+    .rubric { font-size: 10px !important; }
+
+    /* Esconder inputs editáveis, mostrar valores estáticos */
+    .table-input.editable-input { display: none !important; }
+    .print-value { display: inline-block !important; font-size: 10px !important; }
+
+    /* Forçar preservação de cores do canvas / gráfico */
+    canvas, #pieChart, .chart-box, .chart-box canvas {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    .chart-box {
+        max-width: 300px !important;
+        height: 240px !important;
+        margin: 0.2rem auto !important;
+    }
+    .chart-box canvas { max-width: 280px !important; max-height: 210px !important; }
+
+    /* Cores de fundo dos cards e linhas */
+    .app-header, .status-banner, .card, .footnote,
+    .summary-item, .tax-item, .chart-box {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    tr.row-revenue td { background: #eaf7ee !important; }
+    tr.row-cost td    { background: #fdeeec !important; }
+    tr.row-result td  { background: #e8f1fb !important; }
+    tr td.col-prior   { background: #f2f2f2 !important; }
+    tr td.col-sim     { background: #fff8dc !important; }
+    tr.row-revenue td, tr.row-cost td, tr.row-result td,
+    tr td.col-prior, tr td.col-sim {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Tabs e animações */
+    .tabs { display: none !important; }
+    .tab-btn::after { display: none !important; }
+    .tab-btn { border: none !important; }
+    * { animation: none !important; }
+
+    /* Status banner compacto */
+    .status-banner {
+        padding: 0.4rem 0.7rem !important;
+        margin-bottom: 0.4rem !important;
+        box-shadow: none !important;
+    }
+    .status-banner .status-value { font-size: 1.3rem !important; }
+
+    /* Footer */
+    .app-footer {
+        margin-top: 0.5rem !important;
+        padding: 0.3rem 0 !important;
+        font-size: 9px !important;
+        border-top: 1px solid #ddd !important;
+    }
+    .footnote {
+        padding: 0.4rem 0.6rem !important;
+        font-size: 9px !important;
+        margin-top: 0.4rem !important;
+    }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ TOPBAR ============ -->
+<div class="topbar">
+    <div class="topbar-brand">
+        <div class="logo-area">
+            <div class="logo-wrapper">
+                <span class="logo-fallback">
+                    <svg width="90" height="28" viewBox="0 0 90 28" xmlns="http://www.w3.org/2000/svg" aria-label="hi!pa">
+                        <text x="0" y="21" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="800" letter-spacing="-0.03em" fill="#0f172a">hi!</text>
+                        <text x="38" y="21" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="800" letter-spacing="-0.03em" fill="#64748b">pa</text>
+                    </svg>
+                </span>
+            </div>
+            <div class="brand-text">
+                <div class="brand-name">hi!pa Financial Analyzer</div>
+                <div class="brand-sub" id="logoTagline">📊 Financial Report · Live Demo</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="topbar-actions">
+        <!-- COUNTRY -->
+        <div class="topbar-select">
+            <label for="countrySelect" id="lblCountry">🌍 Country</label>
+            <select id="countrySelect">
+                <option value="PT">🇵🇹 Portugal</option>
+                <option value="ES">🇪🇸 España</option>
+                <option value="FR">🇫🇷 France</option>
+                <option value="UK">🇬🇧 United Kingdom</option>
+                <option value="DE">🇩🇪 Deutschland</option>
+                <option value="US">🇺🇸 United States</option>
+            </select>
+        </div>
+
+        <!-- ANALYSIS -->
+        <div class="topbar-select">
+            <label for="analysisSelect" id="lblAnalysis">📊 Analysis</label>
+            <select id="analysisSelect">
+                <option value="3m">3 Months</option>
+                <option value="6m">6 Months</option>
+                <option value="9m" selected>9 Months</option>
+            </select>
+        </div>
+
+        <!-- LANGUAGE (English first!) -->
+        <div class="topbar-select">
+            <label for="languageSelect" id="lblLanguage">🌐 Language</label>
+            <select id="languageSelect">
+                <option value="en" selected>English</option>
+                <option value="pt">Português</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+            </select>
+        </div>
+
+        <button class="btn btn-ghost" onclick="alert('⚙️ Tax configuration is available in the full version.')">
+            ⚙️ <span id="lblConfig">Config</span>
+        </button>
+        <button class="btn btn-ghost" onclick="loadDemoData()">
+            🔄 <span id="lblNew">Reset Demo</span>
+        </button>
+        <button class="btn btn-accent" onclick="alert('💾 Save project is available in the full version.')">
+            💾 <span id="lblSave">Save</span>
+        </button>
+        <button class="btn btn-ghost" onclick="exportPDFDemo()">📄 PDF</button>
+    </div>
+</div>
+
+<div class="app-container">
+
+    <!-- DEMO BANNER -->
+    <div class="demo-banner">
+        <span class="badge">LIVE DEMO</span>
+        <span>This is an interactive preview with <strong>sample data</strong>. Type in any field to see the projections update instantly.</span>
+    </div>
+
+    <!-- HEADER -->
+    <div class="app-header">
+        <div class="field-group">
+            <label for="companyName" id="lblCompany">🏢 Company</label>
+            <input type="text" id="companyName" class="company-input" value="NovaTech Solutions, Lda." />
+        </div>
+        <div class="field-group">
+            <label for="nifInput" id="lblNif">NIF</label>
+            <input type="text" id="nifInput" class="meta-input narrow" value="509 887 231" />
+
+            <label for="periodInput" id="lblPeriod">📅 Period</label>
+            <input type="text" id="periodInput" class="meta-input medium" value="9 Months 2026" />
+
+            <label for="dateInput" id="lblDate">📅 Date</label>
+            <input type="text" id="dateInput" class="meta-input wide" value="30/09/2026" />
+        </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="status-banner" id="statusBanner">
+        <div style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:center;">
+            <span class="status-label" id="lblNetIncome">📊 Net Income</span>
+            <span class="status-value" id="statusValue">0 €</span>
+            <span class="status-detail" id="statusDetail"></span>
+        </div>
+        <div>
+            <span id="statusBadge">—</span>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs" id="tabsContainer"></div>
+
+    <!-- CONTENT -->
+    <div id="contentArea"></div>
+
+    <!-- FOOTER -->
+    <div class="app-footer" id="appFooter">
+        <span id="footerCompany">© Company · NIF</span>
+        <span id="footerPeriod">Report</span>
+    </div>
+
+</div>
+
+<script>
+/* ================================================================
+ *  DEMO · hi!pa Financial Analyzer
+ *  Lógica simplificada mas fiel ao app.js original
+ * ================================================================ */
+
+/* ---------- CONFIGURAÇÃO DOS PAÍSES ---------- */
+const COUNTRIES = {
+    PT:{ name:"Portugal", flag:"🇵🇹", currency:{code:"EUR",locale:"en-GB"}, fiscalIdLabel:"NIF",
+        taxes:[{name:"IRC", description:"Corporate Income Tax", type:"tiered", tiers:[{limit:50000,rate:15},{limit:null,rate:19}]},
+               {name:"Derrama Municipal", description:"Municipal surtax", type:"flat", rate:1.5}]},
+    ES:{ name:"España", flag:"🇪🇸", currency:{code:"EUR",locale:"en-GB"}, fiscalIdLabel:"NIF",
+        taxes:[{name:"Impuesto sobre Sociedades", description:"General corporate rate", type:"tiered", tiers:[{limit:50000,rate:21},{limit:null,rate:22}]}]},
+    FR:{ name:"France", flag:"🇫🇷", currency:{code:"EUR",locale:"en-GB"}, fiscalIdLabel:"SIRET",
+        taxes:[{name:"Impôt sur les Sociétés", description:"Standard rate", type:"flat", rate:25}]},
+    UK:{ name:"United Kingdom", flag:"🇬🇧", currency:{code:"GBP",locale:"en-GB"}, fiscalIdLabel:"VAT Number",
+        taxes:[{name:"Corporation Tax", description:"Small profits rate + Main rate", type:"tiered", tiers:[{limit:50000,rate:19},{limit:250000,rate:25},{limit:null,rate:25}]}]},
+    DE:{ name:"Deutschland", flag:"🇩🇪", currency:{code:"EUR",locale:"en-GB"}, fiscalIdLabel:"USt-IdNr.",
+        taxes:[{name:"Körperschaftsteuer", description:"Corporate tax", type:"flat", rate:15},
+               {name:"Solidaritätszuschlag", description:"Solidarity surcharge", type:"flat", rate:0.825},
+               {name:"Gewerbesteuer", description:"Municipal trade tax", type:"flat", rate:14}]},
+    US:{ name:"United States", flag:"🇺🇸", currency:{code:"USD",locale:"en-US"}, fiscalIdLabel:"EIN",
+        taxes:[{name:"Federal Tax", description:"Federal income tax", type:"flat", rate:21},
+               {name:"State Tax", description:"State income tax (varies)", type:"flat", rate:5}]}
+};
+
+/* ---------- TRADUÇÕES (EN default) ---------- */
+const TRANSLATIONS = {
+    en:{
+        logoTagline:"📊 Financial Report · Live Demo",
+        lblCountry:"🌍 Country", lblAnalysis:"📊 Analysis", lblLanguage:"🌐 Language",
+        lblCompany:"🏢 Company", lblPeriod:"📅 Period", lblDate:"📅 Date",
+        lblNetIncome:"📊 Net Income", lblConfig:"Config", lblNew:"Reset Demo", lblSave:"Save",
+        analysis3m:"3 Months", analysis6m:"6 Months", analysis9m:"9 Months",
+        totalRevenue:"Total Revenue",
+        cogs:"Cost of goods sold and materials consumed",
+        externalServices:"External supplies and services",
+        personnel:"Personnel costs",
+        depreciation:"Depreciation and amortization costs",
+        generalExpenses:"General Expenses",
+        netIncome:"Net income for the period",
+        item:"Item", variation:"Variation",
+        priorYear:"Prior Year", prior6m:"Prior Year 6 Months",
+        currentPeriod:"1st Half", secondHalfSimulation:"2nd Half Simulation",
+        thirdQuarter:"3rd Quarter", fourthQuarter:"4th Quarter",
+        simulation:"Simulation", projection:"Annual Projection",
+        annualVariation:"Annual Variation", quarter1:"1st Quarter",
+        growthRate:"📈 Growth Rate",
+        editHint:"💡 Click and type to see projections update live",
+        summaryTitle:"📌 Projection summary",
+        priorYearResult:"Prior Year Result",
+        firstHalfActual:"1st Half Current Year (actual)",
+        secondHalfProjection:"2nd Half Projection",
+        annualProjection:"📈 Annual Projection",
+        taxTitle:"💰 Income Tax",
+        taxBase:"Net Income (Tax Base)",
+        totalTaxes:"💰 Total Taxes", taxRate:"Rate",
+        profit:"✅ PROFIT", loss:"⚠️ LOSS",
+        report:"Report", readingNotes:"📌 Reading notes",
+        notePeriod9m:"1st Half and 3rd Quarter: actual values",
+        notePeriod6m:"Like-for-like comparison: first 6 months of prior year vs 1st half of current year",
+        notePeriod3m:"Quarter: actual values",
+        noteProj9m:"4th Quarter: projection based on growth rate",
+        noteProj6m:"2nd Half: projection based on growth rate",
+        noteProj3m:"No projections (actual period only)",
+        comparison:"Comparison", annualProjectionTitle:"Annual projection",
+        annualProjectionHint:"Full prior year · 1st half · 2nd half simulation · annual projection"
+    },
+    pt:{
+        logoTagline:"📊 Relatório Financeiro · Demo",
+        lblCountry:"🌍 País", lblAnalysis:"📊 Análise", lblLanguage:"🌐 Idioma",
+        lblCompany:"🏢 Empresa", lblPeriod:"📅 Período", lblDate:"📅 Data",
+        lblNetIncome:"📊 Resultado Líquido", lblConfig:"Config", lblNew:"Reiniciar Demo", lblSave:"Guardar",
+        analysis3m:"3 Meses", analysis6m:"6 Meses", analysis9m:"9 Meses",
+        totalRevenue:"Total Faturado",
+        cogs:"Custo das mercadorias vendidas e matérias consumidas",
+        externalServices:"Fornecimentos e serviços externos",
+        personnel:"Gastos com o pessoal",
+        depreciation:"Gastos de depreciação e amortização",
+        generalExpenses:"Gastos Gerais",
+        netIncome:"Resultado líquido do período",
+        item:"Rúbrica", variation:"Variação",
+        priorYear:"Ano Transato", prior6m:"6 Meses Ano Transato",
+        currentPeriod:"1º Semestre", secondHalfSimulation:"Simulação 2º Semestre",
+        thirdQuarter:"3º Trimestre", fourthQuarter:"4º Trimestre",
+        simulation:"Simulação", projection:"Projeção Anual",
+        annualVariation:"Variação Anual", quarter1:"1º Trimestre",
+        growthRate:"📈 Taxa de Crescimento",
+        editHint:"💡 Clique e digite para ver as projeções atualizarem",
+        summaryTitle:"📌 Resumo da projeção",
+        priorYearResult:"Resultado Ano Transato",
+        firstHalfActual:"1º Sem Ano Atual (real)",
+        secondHalfProjection:"Projeção 2º Sem Ano Atual",
+        annualProjection:"📈 Projeção Anual",
+        taxTitle:"💰 Impostos sobre o Rendimento",
+        taxBase:"Resultado Líquido (Base de Cálculo)",
+        totalTaxes:"💰 Total de Impostos", taxRate:"Taxa",
+        profit:"✅ LUCRO", loss:"⚠️ PREJUÍZO",
+        report:"Relatório", readingNotes:"📌 Notas de leitura",
+        notePeriod9m:"1º Semestre e 3º Trimestre: valores reais",
+        notePeriod6m:"Comparação homologada: primeiros 6 meses do ano transato vs 1º semestre do ano atual",
+        notePeriod3m:"Trimestre: valores reais",
+        noteProj9m:"4º Trimestre: projeção baseada na taxa de crescimento",
+        noteProj6m:"2º Semestre: projeção baseada na taxa de crescimento",
+        noteProj3m:"Sem projeções (apenas período real)",
+        comparison:"Comparação", annualProjectionTitle:"Projeção anual",
+        annualProjectionHint:"Ano transato completo · 1º semestre · simulação 2º semestre · projeção anual"
+    },
+    es:{
+        logoTagline:"📊 Informe Financiero · Demo",
+        lblCountry:"🌍 País", lblAnalysis:"📊 Análisis", lblLanguage:"🌐 Idioma",
+        lblCompany:"🏢 Empresa", lblPeriod:"📅 Período", lblDate:"📅 Fecha",
+        lblNetIncome:"📊 Resultado Neto", lblConfig:"Config", lblNew:"Reiniciar Demo", lblSave:"Guardar",
+        analysis3m:"3 Meses", analysis6m:"6 Meses", analysis9m:"9 Meses",
+        totalRevenue:"Importe Neto Cifra Negocios",
+        cogs:"Aprovisionamientos", externalServices:"Servicios Exteriores",
+        personnel:"Gastos de Personal", depreciation:"Amortizaciones",
+        generalExpenses:"Gastos Generales", netIncome:"Resultado del Ejercicio",
+        item:"Concepto", variation:"Variación",
+        priorYear:"Año Anterior", prior6m:"6 Meses Año Anterior",
+        currentPeriod:"1er Semestre", secondHalfSimulation:"Simulación 2º Semestre",
+        thirdQuarter:"3er Trimestre", fourthQuarter:"4º Trimestre",
+        simulation:"Simulación", projection:"Proyección Anual",
+        annualVariation:"Variación Anual", quarter1:"1er Trimestre",
+        growthRate:"📈 Tasa de Crecimiento",
+        editHint:"💡 Haga clic y escriba para ver las proyecciones actualizarse",
+        summaryTitle:"📌 Resumen de la proyección",
+        priorYearResult:"Resultado Año Anterior",
+        firstHalfActual:"1er Sem Año Actual (real)",
+        secondHalfProjection:"Proyección 2º Sem Año Actual",
+        annualProjection:"📈 Proyección Anual",
+        taxTitle:"💰 Impuestos sobre el Rendimiento",
+        taxBase:"Resultado Neto (Base de Cálculo)",
+        totalTaxes:"💰 Total de Impuestos", taxRate:"Tasa",
+        profit:"✅ BENEFICIO", loss:"⚠️ PÉRDIDA",
+        report:"Informe", readingNotes:"📌 Notas de lectura",
+        notePeriod9m:"1er Semestre y 3er Trimestre: valores reales",
+        notePeriod6m:"Comparación homogénea: primeros 6 meses del año anterior vs 1er semestre del año actual",
+        notePeriod3m:"Trimestre: valores reales",
+        noteProj9m:"4º Trimestre: proyección basada en la tasa de crecimiento",
+        noteProj6m:"2º Semestre: proyección basada en la tasa de crecimiento",
+        noteProj3m:"Sin proyecciones (solo período real)",
+        comparison:"Comparación", annualProjectionTitle:"Proyección anual",
+        annualProjectionHint:"Año anterior completo · 1er semestre · simulación 2º semestre · proyección anual"
+    },
+    fr:{
+        logoTagline:"📊 Rapport Financier · Démo",
+        lblCountry:"🌍 Pays", lblAnalysis:"📊 Analyse", lblLanguage:"🌐 Langue",
+        lblCompany:"🏢 Entreprise", lblPeriod:"📅 Période", lblDate:"📅 Date",
+        lblNetIncome:"📊 Résultat Net", lblConfig:"Config", lblNew:"Réinitialiser", lblSave:"Enregistrer",
+        analysis3m:"3 Mois", analysis6m:"6 Mois", analysis9m:"9 Mois",
+        totalRevenue:"Chiffre d'Affaires",
+        cogs:"Achats de Marchandises", externalServices:"Autres Charges Externes",
+        personnel:"Charges de Personnel", depreciation:"Dotations aux Amortissements",
+        generalExpenses:"Charges Diverses", netIncome:"Résultat de l'Exercice",
+        item:"Rubrique", variation:"Variation",
+        priorYear:"Année Précédente", prior6m:"6 Mois Année Précédente",
+        currentPeriod:"1er Semestre", secondHalfSimulation:"Simulation 2e Semestre",
+        thirdQuarter:"3ème Trimestre", fourthQuarter:"4ème Trimestre",
+        simulation:"Simulation", projection:"Projection Annuelle",
+        annualVariation:"Variation Annuelle", quarter1:"1er Trimestre",
+        growthRate:"📈 Taux de Croissance",
+        editHint:"💡 Cliquez et tapez pour voir les projections se mettre à jour",
+        summaryTitle:"📌 Résumé de la projection",
+        priorYearResult:"Résultat Année Précédente",
+        firstHalfActual:"1er Sem Année Actuelle (réel)",
+        secondHalfProjection:"Projection 2ème Sem Année Actuelle",
+        annualProjection:"📈 Projection Annuelle",
+        taxTitle:"💰 Impôts sur le Revenu",
+        taxBase:"Résultat Net (Base de Calcul)",
+        totalTaxes:"💰 Total des Impôts", taxRate:"Taux",
+        profit:"✅ BÉNÉFICE", loss:"⚠️ PERTE",
+        report:"Rapport", readingNotes:"📌 Notes de lecture",
+        notePeriod9m:"1er Semestre et 3ème Trimestre : valeurs réelles",
+        notePeriod6m:"Comparaison homologue : 6 premiers mois de l'année précédente vs 1er semestre de l'année actuelle",
+        notePeriod3m:"Trimestre : valeurs réelles",
+        noteProj9m:"4ème Trimestre : projection basée sur le taux de croissance",
+        noteProj6m:"2ème Semestre : projection basée sur le taux de croissance",
+        noteProj3m:"Sans projections (période réelle uniquement)",
+        comparison:"Comparaison", annualProjectionTitle:"Projection annuelle",
+        annualProjectionHint:"Année précédente complète · 1er semestre · simulation 2e semestre · projection annuelle"
+    },
+    de:{
+        logoTagline:"📊 Finanzbericht · Demo",
+        lblCountry:"🌍 Land", lblAnalysis:"📊 Analyse", lblLanguage:"🌐 Sprache",
+        lblCompany:"🏢 Unternehmen", lblPeriod:"📅 Zeitraum", lblDate:"📅 Datum",
+        lblNetIncome:"📊 Nettogewinn", lblConfig:"Config", lblNew:"Demo zurücksetzen", lblSave:"Speichern",
+        analysis3m:"3 Monate", analysis6m:"6 Monate", analysis9m:"9 Monate",
+        totalRevenue:"Umsatzerlöse",
+        cogs:"Materialaufwand", externalServices:"Sonstige betriebliche Aufwendungen",
+        personnel:"Personalaufwand", depreciation:"Abschreibungen",
+        generalExpenses:"Allgemeine Kosten", netIncome:"Jahresüberschuss",
+        item:"Position", variation:"Veränderung",
+        priorYear:"Vorjahr", prior6m:"6 Monate Vorjahr",
+        currentPeriod:"1. Halbjahr", secondHalfSimulation:"Simulation 2. Halbjahr",
+        thirdQuarter:"3. Quartal", fourthQuarter:"4. Quartal",
+        simulation:"Simulation", projection:"Jahresprojektion",
+        annualVariation:"Jährliche Veränderung", quarter1:"1. Quartal",
+        growthRate:"📈 Wachstumsrate",
+        editHint:"💡 Klicken und tippen, um Prognosen live zu aktualisieren",
+        summaryTitle:"📌 Projektionsübersicht",
+        priorYearResult:"Ergebnis Vorjahr",
+        firstHalfActual:"1. Halbjahr Aktuelles Jahr (real)",
+        secondHalfProjection:"Projektion 2. Halbjahr Aktuelles Jahr",
+        annualProjection:"📈 Jahresprojektion",
+        taxTitle:"💰 Einkommensteuer",
+        taxBase:"Nettogewinn (Steuerbasis)",
+        totalTaxes:"💰 Gesamtsteuern", taxRate:"Satz",
+        profit:"✅ GEWINN", loss:"⚠️ VERLUST",
+        report:"Bericht", readingNotes:"📌 Lesehinweise",
+        notePeriod9m:"1. Halbjahr und 3. Quartal: tatsächliche Werte",
+        notePeriod6m:"Vergleich: erste 6 Monate des Vorjahres vs. 1. Halbjahr des aktuellen Jahres",
+        notePeriod3m:"Quartal: tatsächliche Werte",
+        noteProj9m:"4. Quartal: Prognose basierend auf der Wachstumsrate",
+        noteProj6m:"2. Halbjahr: Prognose basierend auf der Wachstumsrate",
+        noteProj3m:"Keine Prognosen (nur tatsächlicher Zeitraum)",
+        comparison:"Vergleich", annualProjectionTitle:"Jahresprognose",
+        annualProjectionHint:"Vollständiges Vorjahr · 1. Halbjahr · Simulation 2. Halbjahr · Jahresprognose"
+    }
+};
+
+/* ---------- ESTADO GLOBAL ---------- */
+const state = {
+    country:"PT",
+    analysis:"9m",
+    language:"en",
+    yearTransato:2025,
+    yearAtual:2026,
+    growthRate:50
+};
+
+const ANALYSES = {
+    "3m":{
+        columns:[
+            {key:"transato", labelKey:"priorYear"},
+            {key:"atual", labelKey:"quarter1"},
+            {key:"variacao", labelKey:"variation", isVariation:true}
+        ],
+        pages:1, hasGrowthControl:false, hasTaxes:false
+    },
+    "6m":{
+        columns:[
+            {key:"transato6m", labelKey:"prior6m"},
+            {key:"atual", labelKey:"currentPeriod"},
+            {key:"variacao6m", labelKey:"variation", isVariation:true, prevKey:"transato6m", currentKey:"atual"}
+        ],
+        page2Columns:[
+            {key:"transato", labelKey:"priorYear"},
+            {key:"atual", labelKey:"currentPeriod"},
+            {key:"simulacao", labelKey:"secondHalfSimulation", isCalc:true},
+            {key:"projecao", labelKey:"projection", isCalc:true},
+            {key:"variacao", labelKey:"annualVariation", isVariation:true, prevKey:"transato", currentKey:"projecao"}
+        ],
+        pages:2, hasGrowthControl:true, hasTaxes:true
+    },
+    "9m":{
+        columns:[
+            {key:"transato", labelKey:"priorYear"},
+            {key:"semestre", labelKey:"currentPeriod"},
+            {key:"trim3", labelKey:"thirdQuarter"},
+            {key:"trim4", labelKey:"fourthQuarter", isCalc:true},
+            {key:"projecao", labelKey:"projection", isCalc:true},
+            {key:"variacao", labelKey:"annualVariation", isVariation:true}
+        ],
+        pages:2, hasGrowthControl:true, hasTaxes:true
+    }
+};
+
+/* ---------- DADOS DE EXEMPLO ---------- */
+let DATA = null;
+let chartInstance = null;
+let currentPage = "page1";
+
+function createEmptyRubrics(){
+    const empty={transato:0,transato6m:0,atual:0,semestre:0,trim3:0,trim4:0,simulacao:0,projecao:0,variacao:0,variacao6m:0};
+    return {
+        totalRevenue:{...empty}, cogs:{...empty}, externalServices:{...empty},
+        personnel:{...empty}, depreciation:{...empty}, generalExpenses:{...empty},
+        netIncome:{...empty}
+    };
+}
+
+function loadDemoData(){
+    DATA = {
+        totalRevenue:     {transato:142000, transato6m:71000, atual:85000, semestre:98000, trim3:52000, trim4:0, simulacao:0, projecao:0, variacao:0, variacao6m:0},
+        cogs:             {transato: 56000, transato6m:28000, atual:32000, semestre:37000, trim3:19000, trim4:0, simulacao:0, projecao:0, variacao:0, variacao6m:0},
+        externalServices:{transato: 18000, transato6m: 9000, atual:10500, semestre:12000, trim3: 6500, trim4:0, simulacao:0, projecao:0, variacao:0, variacao6m:0},
+        personnel:        {transato: 22000, transato6m:11000, atual:13000, semestre:15000, trim3: 7800, trim4:0, simulacao:0, projecao:0, variacao:0, variacao6m:0},
+        depreciation:     {transato:  3500, transato6m: 1750, atual: 2000, semestre: 2300, trim3: 1200, trim4:0, simulacao:0, projecao:0, variacao:0, variacao6m:0},
+        generalExpenses:  {transato:  6500, transato6m: 3250, atual: 3800, semestre: 4400, trim3: 2300, trim4:0, simulacao:0, projecao:0, variacao:0, variacao6m:0},
+        netIncome:        {transato:0, transato6m:0, atual:0, semestre:0, trim3:0, trim4:0, simulacao:0, projecao:0, variacao:0, variacao6m:0}
+    };
+    recalculateAll();
+}
+
+/* ---------- AUXILIARES ---------- */
+function t(key){
+    return (TRANSLATIONS[state.language] && TRANSLATIONS[state.language][key]) || key;
+}
+function getCountry(){ return COUNTRIES[state.country]; }
+function getCurrency(){ return getCountry().currency; }
+
+function formatCurrency(value){
+    const c = getCurrency();
+    try{
+        return new Intl.NumberFormat(c.locale,{
+            style:'currency', currency:c.code,
+            minimumFractionDigits:0, maximumFractionDigits:0
+        }).format(Math.round(value));
+    }catch(e){
+        const sym = c.code==='USD'?'$':c.code==='GBP'?'£':'€';
+        return Math.round(value).toLocaleString('en-GB')+' '+sym;
+    }
+}
+function formatNumber(v){ return Math.round(v).toLocaleString('en-GB'); }
+function extractNumber(text){
+    if(!text) return 0;
+    const cleaned = String(text).replace(/[^0-9,.\-]/g,'');
+    const hasCommaDecimal = /,\d{1,2}$/.test(cleaned);
+    const normalized = hasCommaDecimal
+        ? cleaned.replace(/\./g,'').replace(',','.')
+        : cleaned.replace(/,/g,'');
+    return parseFloat(normalized)||0;
+}
+
+/* ---------- PROJEÇÕES ---------- */
+function calculateProjections(){
+    const results = {};
+    const growth = state.growthRate/100;
+    const keys = ['totalRevenue','cogs','externalServices','personnel','depreciation','generalExpenses'];
+
+    keys.forEach(key=>{
+        const r = DATA[key];
+        const out = {};
+        if(state.analysis==="3m"){
+            out.transato = r.transato;
+            out.atual = r.atual;
+            out.variacao = r.atual - r.transato;
+        } else if(state.analysis==="6m"){
+            const simulacao = r.atual*(1+growth);
+            const projecao = r.atual + simulacao;
+            out.transato = r.transato;
+            out.transato6m = r.transato6m;
+            out.atual = r.atual;
+            out.simulacao = simulacao;
+            out.projecao = projecao;
+            out.variacao = projecao - r.transato;
+        } else {
+            const base = (r.semestre + r.trim3)/2;
+            const trim4 = base*(1+growth);
+            const projecao = r.semestre + r.trim3 + trim4;
+            out.transato = r.transato;
+            out.semestre = r.semestre;
+            out.trim3 = r.trim3;
+            out.trim4 = trim4;
+            out.projecao = projecao;
+            out.variacao = projecao - r.transato;
+        }
+        results[key] = out;
+    });
+
+    const net = {};
+    const periods = state.analysis==="3m" ? ["transato","atual"]
+                  : state.analysis==="6m" ? ["transato","atual","simulacao","projecao"]
+                  : ["transato","semestre","trim3","trim4","projecao"];
+
+    periods.forEach(p=>{
+        net[p] = (results.totalRevenue[p]||0) - (results.cogs[p]||0)
+               - (results.externalServices[p]||0) - (results.personnel[p]||0)
+               - (results.depreciation[p]||0) - (results.generalExpenses[p]||0);
+    });
+
+    if(state.analysis==="6m"){
+        net.transato6m = (DATA.totalRevenue.transato6m||0) - (DATA.cogs.transato6m||0)
+                       - (DATA.externalServices.transato6m||0) - (DATA.personnel.transato6m||0)
+                       - (DATA.depreciation.transato6m||0) - (DATA.generalExpenses.transato6m||0);
+        net.variacao6m = net.atual - net.transato6m;
+    }
+    results.netIncome = net;
+    return results;
+}
+
+/* ---------- IMPOSTOS ---------- */
+function calculateTaxes(profit){
+    const country = getCountry();
+    const taxes = [];
+    let totalTax = 0;
+    country.taxes.forEach(tax=>{
+        let v = 0, rateLabel = "";
+        if(tax.type==="flat"){
+            v = Math.max(profit,0)*(tax.rate/100);
+            rateLabel = `${tax.rate}%`;
+        } else if(tax.type==="tiered"){
+            let remaining = Math.max(profit,0);
+            const labels = [];
+            for(const tier of tax.tiers){
+                if(remaining<=0) break;
+                const limit = tier.limit!==null ? tier.limit : remaining;
+                const taxable = Math.min(remaining, limit);
+                v += taxable*(tier.rate/100);
+                remaining -= taxable;
+                if(tier.limit!==null) labels.push(`${tier.rate}% up to ${formatNumber(tier.limit)}`);
+                else labels.push(`${tier.rate}% above`);
+            }
+            rateLabel = labels.join(" + ");
+        }
+        taxes.push({name:tax.name, value:Math.round(v), rate:rateLabel});
+        totalTax += v;
+    });
+    return {breakdown:taxes, total:Math.round(totalTax), profit:Math.round(profit)};
+}
+function calculateCurrentTaxes(){
+    const r = calculateProjections();
+    const n = r.netIncome;
+    const base = state.analysis==="3m" ? (n.atual||0) : (n.projecao||0);
+    return calculateTaxes(base);
+}
+
+/* ---------- VARIAÇÕES ---------- */
+function formatVariation(cur, prev){
+    if(prev===0){
+        if(cur===0) return {text:"—", class:"neutral"};
+        return {text:"N/A", class:"neutral"};
+    }
+    const diff = cur - prev;
+    const pct = (diff/Math.abs(prev))*100;
+    if(pct>0) return {text:`▲ +${pct.toFixed(1)}%`, class:"trend-up"};
+    if(pct<0) return {text:`▼ ${pct.toFixed(1)}%`, class:"trend-down"};
+    return {text:`— 0.0%`, class:"neutral"};
+}
+
+/* ---------- APLICAR TRADUÇÕES ---------- */
+function applyTranslations(){
+    document.getElementById('logoTagline').textContent = t('logoTagline');
+    document.getElementById('lblCountry').textContent = t('lblCountry');
+    document.getElementById('lblAnalysis').textContent = t('lblAnalysis');
+    document.getElementById('lblLanguage').textContent = t('lblLanguage');
+    document.getElementById('lblCompany').textContent = t('lblCompany');
+    document.getElementById('lblNif').textContent = getCountry().fiscalIdLabel;
+    document.getElementById('lblPeriod').textContent = t('lblPeriod');
+    document.getElementById('lblDate').textContent = t('lblDate');
+    document.getElementById('lblNetIncome').textContent = t('lblNetIncome');
+    document.getElementById('lblConfig').textContent = t('lblConfig');
+    document.getElementById('lblNew').textContent = t('lblNew');
+    document.getElementById('lblSave').textContent = t('lblSave');
+
+    const opts = document.getElementById('analysisSelect').querySelectorAll('option');
+    opts.forEach(o=>{
+        const key = 'analysis'+o.value;
+        if(t(key) && t(key)!==key) o.textContent = t(key);
+    });
+}
+
+function updateFooter(){
+    const company = document.getElementById('companyName').value || '—';
+    const nif = document.getElementById('nifInput').value || '—';
+    document.getElementById('footerCompany').textContent =
+        `© ${company} · ${getCountry().fiscalIdLabel} ${nif}`;
+    document.getElementById('footerPeriod').textContent =
+        `${t('report')} · ${document.getElementById('periodInput').value || '—'}`;
+}
+
+/* ---------- RENDER ---------- */
+function renderAll(){
+    const analysis = ANALYSES[state.analysis];
+
+    if(state.analysis==='3m') document.getElementById('periodInput').value = t('quarter1')+' '+state.yearAtual;
+    else if(state.analysis==='6m') document.getElementById('periodInput').value = t('currentPeriod')+' '+state.yearAtual;
+    else document.getElementById('periodInput').value = t('analysis9m')+' '+state.yearAtual;
+
+    updateFooter();
+
+    const tabs = document.getElementById('tabsContainer');
+    const content = document.getElementById('contentArea');
+    tabs.innerHTML = '';
+    content.innerHTML = '';
+
+    if(analysis.pages>1){
+        tabs.style.display = 'flex';
+        tabs.innerHTML = `
+            <button class="tab-btn active" data-page="page1" onclick="switchPage('page1')">
+                📋 ${state.analysis==='9m' ? t('analysis9m') : t('analysis6m')}
+            </button>
+            <button class="tab-btn" data-page="page2" onclick="switchPage('page2')">
+                📈 ${t('summaryTitle').replace('📌 ','')}
+            </button>`;
+    } else {
+        tabs.style.display = 'none';
+    }
+
+    const p1 = document.createElement('div');
+    p1.id='page1'; p1.className='page active';
+    const p2 = document.createElement('div');
+    p2.id='page2'; p2.className='page';
+
+    content.appendChild(p1);
+    if(analysis.pages>1) content.appendChild(p2);
+
+    renderPage1(p1);
+    if(analysis.pages>1) renderPage2(p2);
+
+    currentPage = 'page1';
+    updateStatus();
+    setupEditableInputs();
+    drawChart();
+}
+
+function switchPage(id){
+    currentPage = id;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.page===id));
+    document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id===id));
+}
+
+function renderPage1(container){
+    const analysis = ANALYSES[state.analysis];
+    const country = getCountry();
+
+    const cardTable = document.createElement('div');
+    cardTable.className='card';
+
+    let headerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+            <h3>${state.analysis==='9m'
+                ? t('analysis9m')+' · '+t('projection')
+                : state.analysis==='6m'
+                    ? t('analysis6m')+' · '+t('comparison')
+                    : t('analysis3m')}</h3>
+            <span class="edit-hint">${t('editHint')}</span>
+        </div>`;
+
+    if(analysis.hasGrowthControl){
+        const label = state.analysis==='9m'
+            ? `${t('growthRate')} (4th Q):`
+            : `${t('growthRate')} (2nd H):`;
+        headerHTML += `
+            <div class="growth-control">
+                <label>${label}</label>
+                <input type="number" id="growthRateInput" value="${state.growthRate}" step="1" min="-100" max="500" />
+                <span style="font-size:0.8rem; color:#4a5f7c;">%</span>
+            </div>`;
+    }
+
+    headerHTML += buildTableHTML();
+    cardTable.innerHTML = headerHTML;
+    container.appendChild(cardTable);
+
+    const cardChart = document.createElement('div');
+    cardChart.className='card';
+    cardChart.innerHTML = `
+        <h3>📊 ${t('totalRevenue')} vs ${t('generalExpenses')}</h3>
+        <div class="sub-hint">${t('projection')} ${state.yearAtual}</div>
+        <div class="chart-box"><canvas id="pieChart"></canvas></div>`;
+    container.appendChild(cardChart);
+
+    const notes = document.createElement('div');
+    notes.className='footnote';
+    notes.innerHTML = `
+        <strong>${t('readingNotes')}</strong><br/>
+        • ${country.flag} ${country.name}<br/>
+        • ${state.analysis==='9m' ? t('notePeriod9m') : state.analysis==='6m' ? t('notePeriod6m') : t('notePeriod3m')}<br/>
+        • ${state.analysis==='9m' ? t('noteProj9m') : state.analysis==='6m' ? t('noteProj6m') : t('noteProj3m')}`;
+    container.appendChild(notes);
+}
+
+function renderPage2(container){
+    if(state.analysis==='6m'){
+        const c = document.createElement('div');
+        c.className='card';
+        c.innerHTML = `
+            <h3>📈 ${t('annualProjectionTitle')}</h3>
+            <div class="sub-hint">${t('annualProjectionHint')}</div>
+            ${buildTableHTML(true)}`;
+        container.appendChild(c);
+    }
+    const summary = document.createElement('div');
+    summary.className='card';
+    summary.innerHTML = `<h4>${t('summaryTitle')}</h4><div class="summary-grid" id="summaryGrid"></div>`;
+    container.appendChild(summary);
+
+    const taxes = document.createElement('div');
+    taxes.className='card';
+    taxes.innerHTML = `
+        <h4>${t('taxTitle')}</h4>
+        <div class="sub-hint">${getCountry().name}</div>
+        <div class="tax-grid" id="taxGrid"></div>`;
+    container.appendChild(taxes);
+
+    const notes = document.createElement('div');
+    notes.className='footnote';
+    notes.innerHTML = `
+        <strong>${t('readingNotes')}</strong><br/>
+        • ${t('taxBase')}: ${t('netIncome')}<br/>
+        • ${getCountry().taxes.map(x=>x.name).join(' · ')}`;
+    container.appendChild(notes);
+
+    renderSummary();
+    renderTaxes();
+}
+
+function buildTableHTML(page2Mode){
+    const analysis = ANALYSES[state.analysis];
+    const columns = (state.analysis==="6m" && page2Mode) ? analysis.page2Columns : analysis.columns;
+
+    let thead = '<tr>';
+    thead += `<th style="min-width:180px;">${t('item')}</th>`;
+    columns.forEach(c=>{ thead += `<th class="num">${t(c.labelKey)}</th>`; });
+    thead += '</tr>';
+
+    let tbody = '';
+    const keys = ['totalRevenue','cogs','externalServices','personnel','depreciation','generalExpenses','netIncome'];
+    const priorKeys = ['transato','transato6m'];
+    const simKeys = ['simulacao','projecao','trim4'];
+
+    keys.forEach(key=>{
+        const isResult = key==='netIncome';
+        const isRevenue = key==='totalRevenue';
+        const rowClass = isResult?'row-result':isRevenue?'row-revenue':'row-cost';
+
+        tbody += `<tr class="${rowClass}">`;
+        tbody += `<td class="rubric" style="${isResult?'font-weight:600;':''}">${t(key)}</td>`;
+
+        columns.forEach(col=>{
+            let colClass='';
+            if(priorKeys.includes(col.key)) colClass='col-prior';
+            else if(simKeys.includes(col.key)) colClass='col-sim';
+
+            if(col.isVariation){
+                let prev='transato', current='projecao';
+                if(col.key==='variacao6m'){ prev='transato6m'; current='atual'; }
+                else if(col.key==='variacao' && state.analysis==='3m'){ prev='transato'; current='atual'; }
+                if(col.prevKey) prev=col.prevKey;
+                if(col.currentKey) current=col.currentKey;
+
+                const vc = DATA[key][current]||0;
+                const vp = DATA[key][prev]||0;
+                const r = formatVariation(vc, vp);
+                tbody += `<td class="num ${r.class}" data-var-key="${key}" data-var-period="${col.key}">${r.text}</td>`;
+            } else if(col.isCalc || isResult){
+                const v = DATA[key][col.key]||0;
+                tbody += `<td class="num ${colClass}" data-calc-key="${key}" data-calc-period="${col.key}"><span class="print-value">${formatNumber(v)}</span></td>`;
+            } else {
+                const v = DATA[key][col.key]||0;
+                tbody += `<td class="num ${colClass}">
+                    <input type="text" class="table-input editable-input"
+                           data-rubric="${key}" data-period="${col.key}"
+                           value="${formatNumber(v)}" autocomplete="off" />
+                    <span class="print-value" style="display:none;">${formatNumber(v)}</span>
+                </td>`;
+            }
+        });
+        tbody += '</tr>';
+    });
+
+    return `<div class="table-wrap"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+}
+
+/* ---------- INPUTS EDITÁVEIS ---------- */
+let inputsBound = false;
+function setupEditableInputs(){
+    const area = document.getElementById('contentArea');
+    if(!inputsBound){
+        area.addEventListener('click', e=>{ if(e.target.classList.contains('editable-input')) e.target.select(); });
+        area.addEventListener('blur', e=>{ if(e.target.classList.contains('editable-input')) handleBlur(e); }, true);
+        area.addEventListener('keydown', e=>{ if(e.target.classList.contains('editable-input')) handleKey(e); });
+        inputsBound = true;
+    }
+    const g = document.getElementById('growthRateInput');
+    if(g){
+        g.addEventListener('input', function(){
+            state.growthRate = parseFloat(this.value)||0;
+            recalculateAll();
+        });
+    }
+}
+function handleKey(e){
+    const i = e.target;
+    if(e.key==='ArrowUp'){ e.preventDefault(); const v=extractNumber(i.value); i.value=formatNumber(v+1); i.blur(); }
+    else if(e.key==='ArrowDown'){ e.preventDefault(); const v=extractNumber(i.value); i.value=formatNumber(v-1); i.blur(); }
+    else if(e.key==='Enter'){ e.preventDefault(); i.blur(); }
+    else if(e.key==='Escape'){
+        i.value = formatNumber(DATA[i.dataset.rubric][i.dataset.period]||0); i.blur();
+    }
+}
+function handleBlur(e){
+    const i = e.target;
+    const r = i.dataset.rubric, p = i.dataset.period;
+    if(!r||!p) return;
+    const v = extractNumber(i.value);
+    if(isNaN(v)){ i.value = formatNumber(DATA[r][p]||0); return; }
+    DATA[r][p] = v;
+    i.value = formatNumber(v);
+    const span = i.parentElement.querySelector('.print-value');
+    if(span) span.textContent = formatNumber(v);
+    recalculateAll();
+}
+
+/* ---------- RECALCULAR ---------- */
+function recalculateAll(){
+    const results = calculateProjections();
+    Object.keys(results).forEach(k=>{
+        Object.keys(results[k]).forEach(p=>{ DATA[k][p] = results[k][p]; });
+    });
+    const all = ['transato','transato6m','atual','semestre','trim3','trim4','simulacao','projecao'];
+    all.forEach(p=>{
+        DATA.netIncome[p] =
+            (DATA.totalRevenue[p]||0) - (DATA.cogs[p]||0)
+          - (DATA.externalServices[p]||0) - (DATA.personnel[p]||0)
+          - (DATA.depreciation[p]||0) - (DATA.generalExpenses[p]||0);
+    });
+
+    document.querySelectorAll('[data-calc-key]').forEach(cell=>{
+        const k=cell.dataset.calcKey, p=cell.dataset.calcPeriod;
+        const s=cell.querySelector('.print-value');
+        if(s) s.textContent = formatNumber(DATA[k][p]||0);
+    });
+    document.querySelectorAll('[data-var-key]').forEach(cell=>{
+        const k=cell.dataset.varKey, vp=cell.dataset.varPeriod;
+        let prev='transato', cur='projecao';
+        if(vp==='variacao6m'){ prev='transato6m'; cur='atual'; }
+        else if(vp==='variacao' && state.analysis==='3m'){ prev='transato'; cur='atual'; }
+        const r = formatVariation(DATA[k][cur]||0, DATA[k][prev]||0);
+        cell.textContent = r.text;
+        cell.className = 'num ' + r.class;
+    });
+
+    updateStatus();
+    renderSummary();
+    renderTaxes();
+    drawChart();
+}
+
+/* ---------- STATUS ---------- */
+function updateStatus(){
+    const r = calculateProjections();
+    const n = r.netIncome;
+    const value = state.analysis==='3m' ? (n.atual||0) : (n.projecao||0);
+    const label = state.analysis==='3m'
+        ? t('quarter1')+' '+state.yearAtual
+        : t('projection')+' '+state.yearAtual;
+
+    const vEl = document.getElementById('statusValue');
+    const dEl = document.getElementById('statusDetail');
+    const bEl = document.getElementById('statusBadge');
+    const banner = document.getElementById('statusBanner');
+
+    vEl.textContent = formatCurrency(value);
+    vEl.className = 'status-value ' + (value>=0?'profit':'loss');
+    dEl.textContent = `(${label})`;
+
+    banner.classList.remove('profit','loss');
+    banner.classList.add(value>=0?'profit':'loss');
+
+    if(value>=0){
+        bEl.textContent = t('profit');
+        bEl.style.background = '#e2f3e4';
+        bEl.style.color = '#0a5e2a';
+    } else {
+        bEl.textContent = t('loss');
+        bEl.style.background = '#fde8e8';
+        bEl.style.color = '#a12b2b';
+    }
+}
+
+function renderSummary(){
+    const grid = document.getElementById('summaryGrid');
+    if(!grid) return;
+    const r = calculateProjections();
+    const n = r.netIncome;
+    const items = [];
+
+    if(state.analysis==='3m'){
+        items.push({label:t('priorYear'), value:n.transato||0});
+        items.push({label:t('quarter1')+' '+state.yearAtual, value:n.atual||0, cls:'highlight'});
+    } else if(state.analysis==='6m'){
+        items.push({label:t('priorYear'), value:n.transato||0});
+        items.push({label:t('currentPeriod'), value:n.atual||0});
+        items.push({label:t('secondHalfProjection'), value:n.simulacao||0});
+        items.push({label:t('annualProjection'), value:n.projecao||0, cls:'highlight'});
+    } else {
+        items.push({label:t('priorYear'), value:n.transato||0});
+        items.push({label:t('currentPeriod'), value:n.semestre||0});
+        items.push({label:t('thirdQuarter'), value:n.trim3||0});
+        items.push({label:t('fourthQuarter'), value:n.trim4||0});
+        items.push({label:t('annualProjection'), value:n.projecao||0, cls:'highlight'});
+    }
+    grid.innerHTML = items.map(i=>`
+        <div class="summary-item ${i.cls||''}">
+            <div class="label">${i.label}</div>
+            <div class="value">${formatCurrency(i.value)}</div>
+        </div>`).join('');
+}
+
+function renderTaxes(){
+    const grid = document.getElementById('taxGrid');
+    if(!grid) return;
+    const taxes = calculateCurrentTaxes();
+    const items = [{label:t('taxBase'), value:taxes.profit}];
+    taxes.breakdown.forEach(x=>{
+        const vc = x.value>0?'tax-pay':(x.value<0?'tax-receive':'');
+        items.push({label:x.name, value:x.value, rate:x.rate, valueClass:vc});
+    });
+    items.push({label:t('totalTaxes'), value:taxes.total, valueClass:taxes.total>0?'tax-pay':'', cls:'highlight'});
+
+    grid.innerHTML = items.map(i=>`
+        <div class="tax-item ${i.cls||''}">
+            <div class="label">${i.label}</div>
+            <div class="value ${i.valueClass||''}">${formatCurrency(i.value)}</div>
+            ${i.rate?`<div class="rate">${t('taxRate')}: ${i.rate}</div>`:''}
+        </div>`).join('');
+}
+
+/* ---------- CHART ---------- */
+function drawChart(){
+    const canvas = document.getElementById('pieChart');
+    if(!canvas) return;
+    let vendas=0, custos=0;
+    if(state.analysis==='3m'){
+        vendas = DATA.totalRevenue.atual||0;
+        custos = (DATA.cogs.atual||0)+(DATA.externalServices.atual||0)+(DATA.personnel.atual||0)+(DATA.depreciation.atual||0)+(DATA.generalExpenses.atual||0);
+    } else {
+        vendas = DATA.totalRevenue.projecao||0;
+        custos = (DATA.cogs.projecao||0)+(DATA.externalServices.projecao||0)+(DATA.personnel.projecao||0)+(DATA.depreciation.projecao||0)+(DATA.generalExpenses.projecao||0);
+    }
+    const ctx = canvas.getContext('2d');
+    if(chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx,{
+        type:'doughnut',
+        data:{
+            labels:[t('totalRevenue'), t('generalExpenses')],
+            datasets:[{
+                data:[vendas, custos],
+                backgroundColor:['#10b981','#f59e0b'],
+                borderColor:'#ffffff', borderWidth:4, hoverOffset:14
+            }]
+        },
+        options:{
+            responsive:true, maintainAspectRatio:false, cutout:'65%',
+            plugins:{
+                legend:{
+                    position:'bottom',
+                    labels:{boxWidth:12, font:{weight:'600', size:12}, color:'#334155', padding:14, usePointStyle:true, pointStyle:'circle'}
+                },
+                tooltip:{
+                    backgroundColor:'#0f172a', titleColor:'#f59e0b', bodyColor:'#ffffff',
+                    padding:12, cornerRadius:10,
+                    callbacks:{
+                        label:function(ctx){
+                            const v = ctx.raw||0;
+                            const tot = ctx.dataset.data.reduce((a,b)=>a+b,0);
+                            const pct = tot>0?(v/tot*100).toFixed(1):0;
+                            return ' '+ctx.label+': '+formatCurrency(v)+' ('+pct+'%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Forçar preservação das cores na impressão
+    canvas.style.webkitPrintColorAdjust = 'exact';
+    canvas.style.printColorAdjust = 'exact';
+}
+
+/* ---------- LISTENERS ---------- */
+function setupSelectors(){
+    document.getElementById('countrySelect').addEventListener('change', function(){
+        state.country = this.value;
+        applyTranslations();
+        renderAll();
+    });
+    document.getElementById('analysisSelect').addEventListener('change', function(){
+        state.analysis = this.value;
+        applyTranslations();
+        renderAll();
+    });
+    document.getElementById('languageSelect').addEventListener('change', function(){
+        state.language = this.value;
+        applyTranslations();
+        renderAll();
+    });
+}
+
+/* ---------- EXPORT PDF (prepara DOM e chama window.print) ---------- */
+function exportPDFDemo(){
+    // Mostrar todas as páginas
+    document.querySelectorAll('.page').forEach(p=>{
+        p.style.display = 'block';
+        p.classList.add('active');
+    });
+
+    // Esconder inputs editáveis, mostrar valores estáticos
+    document.querySelectorAll('.editable-input').forEach(i=>{ i.style.display='none'; });
+    document.querySelectorAll('.print-value').forEach(s=>{ s.style.display='inline-block'; });
+
+    // Redesenhar gráfico para garantir cores
+    if(chartInstance){
+        chartInstance.resize();
+        chartInstance.update('none');
+    }
+    document.querySelectorAll('canvas').forEach(c=>{
+        c.style.webkitPrintColorAdjust = 'exact';
+        c.style.printColorAdjust = 'exact';
+    });
+
+    // Pequeno delay para garantir que o layout estabilizou
+    setTimeout(()=>{
+        window.print();
+        // Restaurar após imprimir
+        setTimeout(()=>{
+            document.querySelectorAll('.editable-input').forEach(i=>{ i.style.display='inline-block'; });
+            document.querySelectorAll('.print-value').forEach(s=>{ s.style.display='none'; });
+            document.querySelectorAll('.page').forEach(p=>{
+                p.style.display = '';
+                p.classList.toggle('active', p.id === currentPage);
+            });
+        }, 800);
+    }, 300);
+}
+
+/* ---------- INIT ---------- */
+function init(){
+    loadDemoData();
+    setupSelectors();
+    applyTranslations();
+    renderAll();
+    updateFooter();
+    console.log('✅ hi!pa Financial Analyzer — Live Demo ready (EN default).');
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

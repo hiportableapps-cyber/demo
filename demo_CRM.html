@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM · Demo</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink-900:#0f172a;--ink-800:#1e293b;--ink-700:#334155;--ink-500:#64748b;
+  --ink-400:#94a3b8;--ink-300:#cbd5e1;--ink-200:#e2e8f0;--ink-100:#f1f5f9;
+  --ink-50:#f8fafc;--accent:#f59e0b;--accent-dark:#d97706;--accent-soft:#fef3c7;
+  --success:#10b981;--danger:#ef4444;--info:#3b82f6;--bg:#f5f7fb;
+  --card-shadow:0 1px 3px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.04);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color:var(--ink-900);font-size:.875rem;line-height:1.5;padding-bottom:2rem}
+
+/* TOPBAR */
+.topbar{background:var(--ink-900);padding:1rem 2rem;display:flex;align-items:center;
+  justify-content:space-between;flex-wrap:wrap;gap:1rem;position:sticky;top:0;z-index:100;
+  box-shadow:0 4px 24px rgba(0,0,0,.15)}
+.brand{color:#fff;display:flex;flex-direction:column}
+.brand-name{font-size:1.05rem;font-weight:700}
+.brand-sub{font-size:.7rem;color:var(--ink-400);text-transform:uppercase;letter-spacing:.04em}
+.top-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.top-actions select,.top-actions button{font-family:inherit;font-size:.82rem;font-weight:600;
+  padding:.5rem .9rem;border-radius:10px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.08);color:#fff;cursor:pointer;transition:.15s}
+.top-actions select option{background:var(--ink-900)}
+.top-actions button.accent{background:var(--accent);color:var(--ink-900);border-color:var(--accent)}
+.top-actions button.accent:hover{background:var(--accent-dark)}
+.top-actions button:hover,.top-actions select:hover{background:rgba(255,255,255,.18)}
+
+/* LAYOUT */
+.app-layout{display:grid;grid-template-columns:220px 1fr;max-width:1500px;
+  margin:0 auto;padding:1.5rem;gap:1.5rem}
+@media(max-width:900px){.app-layout{grid-template-columns:1fr;padding:1rem}}
+
+/* SIDEBAR */
+.sidebar{background:#fff;border-radius:18px;padding:1rem;
+  box-shadow:var(--card-shadow);border:1px solid var(--ink-200);
+  height:fit-content;position:sticky;top:90px}
+.sidebar-title{font-size:.65rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--ink-400);padding:.8rem .9rem .4rem}
+.sidebar-item{display:flex;align-items:center;gap:.7rem;padding:.7rem .9rem;
+  border-radius:10px;cursor:pointer;font-size:.85rem;font-weight:600;
+  color:var(--ink-700);transition:.15s;border:1px solid transparent;
+  background:transparent;font-family:inherit;width:100%;text-align:left}
+.sidebar-item:hover{background:var(--ink-50)}
+.sidebar-item.active{background:var(--ink-900);color:#fff}
+.sidebar-item .icon{font-size:1.05rem}
+.sidebar-item .count{margin-left:auto;font-size:.7rem;background:var(--ink-100);
+  padding:.1rem .5rem;border-radius:10px;color:var(--ink-700)}
+.sidebar-item.active .count{background:rgba(255,255,255,.15);color:#fff}
+
+/* MAIN */
+.main{min-width:0}
+.page{display:none}
+.page.active{display:block}
+.page-header{display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:1rem;margin-bottom:1.2rem}
+.page-title{font-size:1.5rem;font-weight:700;letter-spacing:-.02em}
+.page-subtitle{font-size:.85rem;color:var(--ink-500);margin-top:.2rem}
+.btn-accent{background:var(--accent);color:var(--ink-900);border:none;
+  font-family:inherit;font-size:.82rem;font-weight:600;padding:.55rem 1rem;
+  border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(245,158,11,.3)}
+.btn-accent:hover{background:var(--accent-dark);transform:translateY(-1px)}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1rem;margin-bottom:1.5rem}
+.stat-card{background:#fff;border-radius:18px;padding:1.4rem 1.6rem;
+  box-shadow:var(--card-shadow);border:1px solid var(--ink-200);transition:.2s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(15,23,42,.08)}
+.stat-card.highlight{background:linear-gradient(180deg,#fffbeb 0%,#fff 100%);
+  border-color:var(--accent)}
+.stat-label{font-size:.7rem;font-weight:700;color:var(--ink-500);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+.stat-value{font-size:1.7rem;font-weight:700;letter-spacing:-.02em}
+.stat-value.accent{color:var(--accent-dark)}
+.stat-value.success{color:var(--success)}
+.stat-value.danger{color:var(--danger)}
+.stat-hint{font-size:.78rem;color:var(--ink-400);margin-top:.35rem}
+
+/* CARD */
+.card{background:#fff;border-radius:18px;padding:1.6rem 1.8rem;
+  box-shadow:var(--card-shadow);border:1px solid var(--ink-200);margin-bottom:1.2rem}
+.card-header{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:1.2rem;padding-bottom:1rem;border-bottom:1px solid var(--ink-100)}
+.card-title{font-size:1rem;font-weight:700}
+
+/* TABLE */
+table.client-table{width:100%;border-collapse:collapse;font-size:.82rem}
+table.client-table th{background:var(--ink-100);color:var(--ink-700);font-weight:700;
+  padding:.6rem .5rem;text-align:left;font-size:.68rem;text-transform:uppercase;
+  letter-spacing:.05em;border-bottom:2px solid var(--ink-200);white-space:nowrap}
+table.client-table td{padding:.5rem;vertical-align:middle;border-bottom:1px solid var(--ink-100)}
+table.client-table tr:hover{background:var(--ink-50)}
+.client-name{font-weight:600;cursor:pointer}
+.client-name:hover{color:var(--accent-dark)}
+.drop-cell{cursor:pointer;padding:.25rem .55rem;border-radius:14px;
+  font-size:.7rem;font-weight:700;display:inline-block;border:1px solid transparent;
+  white-space:nowrap;transition:.15s}
+.drop-cell:hover{border-color:var(--ink-400)}
+.drop-cell::after{content:" ▾";opacity:.5;font-size:.75em}
+.folder-btn{background:transparent;border:none;font-size:1.1rem;cursor:pointer;
+  padding:.2rem;border-radius:4px;text-decoration:none;display:inline-block}
+.folder-btn:hover{background:var(--ink-100)}
+
+/* FILTERS */
+.filters-bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.filter-input,.filter-select{font-family:inherit;font-size:.82rem;
+  padding:.55rem .9rem;border:1px solid var(--ink-200);border-radius:10px;
+  background:#fff;font-weight:500}
+.filter-input{min-width:240px}
+.filter-input:focus,.filter-select:focus{outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+
+/* CHART */
+.chart-container{max-width:400px;height:300px;margin:0 auto;position:relative}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,25,45,.55);
+  backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;
+  z-index:1000;padding:2rem}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:20px;max-width:640px;width:100%;
+  max-height:88vh;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 25px 60px rgba(0,0,0,.35)}
+.modal-header{padding:1.2rem 1.6rem;border-bottom:1px solid var(--ink-100);
+  display:flex;justify-content:space-between;align-items:center}
+.modal-header h3{font-size:1.05rem;font-weight:700}
+.modal-close{background:transparent;border:none;font-size:1.4rem;cursor:pointer;
+  color:var(--ink-400);padding:.3rem .7rem;border-radius:8px;line-height:1}
+.modal-close:hover{background:var(--ink-100);color:var(--ink-900)}
+.modal-body{padding:1.4rem 1.6rem;overflow-y:auto}
+.modal-footer{padding:1rem 1.6rem;border-top:1px solid var(--ink-100);
+  display:flex;gap:.5rem;justify-content:flex-end;background:var(--ink-50)}
+.detail-field{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.9rem}
+.detail-field label{font-size:.68rem;font-weight:700;color:var(--ink-500);
+  text-transform:uppercase;letter-spacing:.05em}
+.detail-field input,.detail-field select{font-family:inherit;font-size:.9rem;
+  font-weight:600;padding:.55rem .8rem;background:#fff;border:1px solid var(--ink-200);
+  border-radius:8px;color:var(--ink-900)}
+.detail-field input:focus,.detail-field select:focus{outline:none;
+  border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+.client-detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+.btn-action{padding:.5rem 1rem;border-radius:10px;font-size:.8rem;font-weight:600;
+  cursor:pointer;border:1px solid var(--ink-200);background:#fff;color:var(--ink-700);
+  display:inline-flex;align-items:center;gap:.4rem;font-family:inherit;transition:.15s}
+.btn-action:hover{border-color:var(--ink-400);background:var(--ink-50)}
+.btn-action.primary{background:var(--accent);color:var(--ink-900);border-color:var(--accent)}
+.btn-action.primary:hover{background:var(--accent-dark);color:#fff}
+.btn-action.danger{color:var(--danger);border-color:var(--danger)}
+
+/* CALENDAR */
+.calendar-toolbar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.year-selector{display:flex;align-items:center;gap:.4rem;background:#fff;
+  padding:.4rem .8rem;border-radius:10px;border:1px solid var(--ink-200)}
+.year-btn{background:transparent;border:none;font-size:1rem;cursor:pointer;
+  padding:.2rem .5rem;border-radius:6px;color:var(--ink-700)}
+.year-btn:hover{background:var(--ink-100)}
+.year-label{font-size:1rem;font-weight:700;min-width:50px;text-align:center}
+.legend-inline{display:flex;align-items:center;gap:.3rem;font-size:.75rem;
+  color:var(--ink-700);font-weight:600;flex-wrap:wrap}
+.legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+.calendar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+.calendar-month{background:#fff;border-radius:14px;padding:.9rem;border:1px solid var(--ink-200)}
+.calendar-month-title{font-size:.8rem;font-weight:700;text-align:center;
+  margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.05em}
+.calendar-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.calendar-days .day-head{font-size:.6rem;font-weight:700;color:var(--ink-400);
+  text-align:center;padding:.2rem 0;text-transform:uppercase}
+.calendar-days .day{font-size:.72rem;text-align:center;padding:.35rem .1rem;
+  border-radius:4px;font-weight:600;color:var(--ink-700);min-height:26px;cursor:pointer;
+  position:relative;transition:.15s}
+.calendar-days .day.empty{cursor:default}
+.calendar-days .day.weekend{background:var(--ink-50)}
+.calendar-days .day:hover:not(.empty){outline:2px solid var(--accent);outline-offset:-2px}
+.calendar-days .day .note-dots{position:absolute;bottom:2px;left:50%;
+  transform:translateX(-50%);display:flex;gap:2px}
+.calendar-days .day .note-dot{width:4px;height:4px;border-radius:50%}
+.calendar-days .day.vacation{background:var(--colab-color,#86efac);color:var(--colab-text,#14532d)}
+
+/* TEAM */
+.team-legend{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.2rem;padding:1rem;
+  background:#fff;border-radius:14px;border:1px solid var(--ink-200)}
+.team-member{display:flex;align-items:center;gap:.5rem;padding:.4rem .9rem;
+  border-radius:20px;cursor:pointer;font-weight:600;font-size:.82rem;
+  border:2px solid transparent;transition:.15s;background:var(--ink-50)}
+.team-member:hover{background:var(--ink-100)}
+.team-member.active{border-color:var(--ink-900);background:#fff}
+.team-color-dot{width:14px;height:14px;border-radius:50%;border:2px solid #fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.team-remove{background:transparent;border:none;cursor:pointer;font-size:.85rem;
+  color:var(--ink-400);padding:0 .2rem;margin-left:.2rem;border-radius:4px;line-height:1}
+.team-remove:hover{color:var(--danger);background:#fde8e8}
+.btn-add-member{background:#fff;border:2px dashed var(--ink-400);padding:.4rem 1rem;
+  border-radius:20px;font-size:.82rem;font-weight:600;color:var(--ink-500);
+  cursor:pointer;font-family:inherit}
+.btn-add-member:hover{border-color:var(--accent);color:var(--accent-dark)}
+
+/* NOTAS DO DIA */
+.day-note-item{display:flex;align-items:center;justify-content:space-between;
+  padding:.6rem .8rem;background:var(--ink-50);border-radius:8px;margin-bottom:.4rem;
+  border-left:4px solid var(--ink-400)}
+.day-note-item.fiscal{border-left-color:#eab308}
+.day-note-item.social{border-left-color:#3b82f6}
+.day-note-item.reuniao{border-left-color:#10b981}
+.day-note-item.urgente{border-left-color:#ef4444}
+.day-note-item.pessoal{border-left-color:#a855f7}
+.day-note-item .note-title{font-size:.85rem;font-weight:700}
+.day-note-item .note-meta{font-size:.7rem;color:var(--ink-500);display:block}
+.btn-remove-note{background:transparent;border:none;color:var(--danger);cursor:pointer;
+  font-size:.9rem;padding:.2rem .5rem;border-radius:6px}
+.btn-remove-note:hover{background:#fde8e8}
+
+/* SEARCH HERO */
+.search-hero{background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);
+  border-radius:18px;padding:2rem;margin-bottom:1.5rem;
+  box-shadow:0 12px 32px rgba(245,158,11,.25)}
+.search-hero-title{font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:1rem}
+.search-hero-input{width:100%;font-family:inherit;font-size:1.05rem;font-weight:600;
+  padding:.9rem 1.2rem;border:none;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.search-hero-input:focus{outline:none;box-shadow:0 0 0 4px rgba(255,255,255,.4)}
+.search-result{background:#fff;border-radius:18px;padding:1.6rem;
+  box-shadow:var(--card-shadow);border:1px solid var(--ink-200);
+  border-left:5px solid var(--accent);margin-bottom:1rem}
+.search-result-name{font-size:1.15rem;font-weight:800;margin-bottom:1rem}
+.search-result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:.8rem;margin-bottom:1rem}
+.search-result-item .lbl{font-size:.65rem;font-weight:700;color:var(--ink-500);
+  text-transform:uppercase;letter-spacing:.05em;display:block}
+.search-result-item .val{font-size:.9rem;font-weight:600}
+.search-result-item .val.mono{font-family:Consolas,Monaco,monospace;font-size:.85rem}
+
+/* NOTIF */
+.notification{position:fixed;bottom:2rem;right:2rem;background:var(--ink-900);
+  color:#fff;padding:1rem 1.5rem;border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.2);font-size:.9rem;font-weight:600;
+  z-index:3000;max-width:400px;transition:opacity .3s}
+.notification.success{background:var(--success)}
+.notification.error{background:var(--danger)}
+.notification.info{background:var(--info)}
+
+@media(max-width:900px){
+  .sidebar{position:static}
+  .sidebar-menu{display:flex;overflow-x:auto;gap:.4rem}
+  .sidebar-item{white-space:nowrap;flex-shrink:0}
+  .sidebar-title{display:none}
+  .brand-sub{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-name" id="lblBrandName">CRM</div>
+    <div class="brand-sub" id="lblBrandSub">Gestão de Clientes · Contabilidade</div>
+  </div>
+  <div class="top-actions">
+    <select id="languageSelect" onchange="switchLanguage(this.value)">
+      <option value="pt">🌐 Português</option>
+      <option value="en">🌐 English</option>
+      <option value="es">🌐 Español</option>
+      <option value="fr">🌐 Français</option>
+      <option value="de">🌐 Deutsch</option>
+    </select>
+    <button class="accent" onclick="saveAll()">💾 <span id="lblSave">Guardar</span></button>
+  </div>
+</div>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-title" id="lblMenuSection">Menu</div>
+    <div class="sidebar-menu">
+      <button class="sidebar-item active" onclick="switchPage('dashboard',this)">
+        <span class="icon">🏠</span><span id="lblMenuDashboard">Dashboard</span></button>
+      <button class="sidebar-item" onclick="switchPage('clientes',this)">
+        <span class="icon">👥</span><span id="lblMenuClientes">Clientes</span></button>
+      <button class="sidebar-item" onclick="switchPage('arquivados',this)">
+        <span class="icon">📦</span><span id="lblMenuArquivados">Arquivados</span>
+        <span id="archCount" class="count">0</span></button>
+      <button class="sidebar-item" onclick="switchPage('pesquisa',this)">
+        <span class="icon">🔍</span><span id="lblMenuPesquisa">Pesquisa</span></button>
+      <button class="sidebar-item" onclick="switchPage('calendario',this)">
+        <span class="icon">📅</span><span id="lblMenuCalendario">Calendário</span></button>
+      <button class="sidebar-item" onclick="switchPage('ferias',this)">
+        <span class="icon">🏖️</span><span id="lblMenuFerias">Mapa Férias</span></button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" id="hdrDashboard">Dashboard</h1>
+          <p class="page-subtitle" id="hdrDashboardSub">Visão geral do escritório</p>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label" id="lblStatTotal">Total de Clientes</div>
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-hint" id="lblStatTotalHint">Carteira ativa</div>
+        </div>
+        <div class="stat-card highlight">
+          <div class="stat-label" id="lblStatArchived">Arquivados</div>
+          <div class="stat-value accent" id="statArchived">0</div>
+          <div class="stat-hint" id="lblStatArchivedHint">Fora da carteira</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" id="lblStatConferidos">Conferidos</div>
+          <div class="stat-value success" id="statConferidos">0</div>
+          <div class="stat-hint" id="lblStatConferidosHint">Fechados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" id="lblStatPendencias">Pendências</div>
+          <div class="stat-value danger" id="statPendencias">0</div>
+          <div class="stat-hint" id="lblStatPendenciasHint">Aguarda ação</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title" id="lblChartTitle">📊 Distribuição por Estado</div>
+        </div>
+        <div class="chart-container"><canvas id="chartEstados"></canvas></div>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="page" id="page-clientes">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" id="hdrClientes">Clientes</h1>
+          <p class="page-subtitle" id="hdrClientesSub">Clique nos estados para alterar</p>
+        </div>
+        <button class="btn-accent" onclick="openClientModal(-1)">+ <span id="lblNewClient">Novo Cliente</span></button>
+      </div>
+      <div class="filters-bar">
+        <input type="text" id="filterInput" class="filter-input"
+          placeholder="🔍 Pesquisar por nome ou NIF..."
+          oninput="renderClients()">
+        <select id="filterRegime" class="filter-select" onchange="renderClients()">
+          <option value="" id="optAllRegimes">Todos os regimes</option>
+          <option value="Contabilidade Organizada" id="optRegOrg">Contabilidade Organizada</option>
+          <option value="Contabilidade Não Organizada" id="optRegNaoOrg">Contabilidade Não Organizada</option>
+        </select>
+      </div>
+      <div class="card" style="padding:1rem">
+        <div style="overflow-x:auto">
+          <table class="client-table">
+            <thead><tr>
+              <th></th><th id="thCliente">Cliente</th><th id="thCt">CT</th><th id="thData">Data</th>
+              <th id="thVendas">Vendas</th><th id="thCompras">Compras</th>
+              <th id="thDeclaracoes">Declarações</th><th id="thNotas">Notas</th>
+              <th style="width:40px"></th>
+            </tr></thead>
+            <tbody id="clientsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARQUIVADOS -->
+    <div class="page" id="page-arquivados">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" id="hdrArquivados">Clientes Arquivados</h1>
+          <p class="page-subtitle" id="hdrArquivadosSub">Podem ser restaurados</p>
+        </div>
+      </div>
+      <div class="card" style="padding:1rem">
+        <table class="client-table">
+          <thead><tr>
+            <th id="thArchCliente">Cliente</th><th id="thArchNif">NIF</th>
+            <th id="thArchMotivo">Motivo</th><th id="thArchData">Data</th>
+            <th style="text-align:right" id="thArchAcoes">Ações</th>
+          </tr></thead>
+          <tbody id="archivedBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PESQUISA -->
+    <div class="page" id="page-pesquisa">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" id="hdrPesquisa">Pesquisa Rápida</h1>
+          <p class="page-subtitle" id="hdrPesquisaSub">Encontre um cliente em 2 segundos</p>
+        </div>
+      </div>
+      <div class="search-hero">
+        <div class="search-hero-title" id="lblSearchTitle">🔍 Procurar cliente</div>
+        <input type="text" class="search-hero-input" id="searchInput"
+          placeholder="Digite o nome ou NIF..." oninput="searchClient(this.value)">
+      </div>
+      <div id="searchResults"></div>
+    </div>
+
+    <!-- CALENDÁRIO -->
+    <div class="page" id="page-calendario">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" id="hdrCalendario">Calendário</h1>
+          <p class="page-subtitle" id="hdrCalendarioSub">Clique num dia para adicionar lembretes</p>
+        </div>
+      </div>
+      <div class="calendar-toolbar">
+        <div class="year-selector">
+          <button class="year-btn" onclick="changeYear(-1)">◄</button>
+          <span class="year-label" id="calYearLabel">2026</span>
+          <button class="year-btn" onclick="changeYear(1)">►</button>
+        </div>
+        <div class="legend-inline">
+          <span class="legend-dot" style="background:#eab308"></span><span id="legendFiscal">Prazo Fiscal</span>
+          <span class="legend-dot" style="background:#3b82f6;margin-left:1rem"></span><span id="legendSocial">Segurança Social</span>
+          <span class="legend-dot" style="background:#10b981;margin-left:1rem"></span><span id="legendReuniao">Reunião</span>
+          <span class="legend-dot" style="background:#ef4444;margin-left:1rem"></span><span id="legendUrgente">Urgente</span>
+          <span class="legend-dot" style="background:#a855f7;margin-left:1rem"></span><span id="legendPessoal">Pessoal</span>
+        </div>
+      </div>
+      <div class="card"><div class="calendar-grid" id="calendarGrid"></div></div>
+    </div>
+
+    <!-- FÉRIAS -->
+    <div class="page" id="page-ferias">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" id="hdrFerias">Mapa de Férias</h1>
+          <p class="page-subtitle" id="hdrFeriasSub">Selecione um colaborador e clique nos dias</p>
+        </div>
+      </div>
+      <div class="calendar-toolbar">
+        <div class="year-selector">
+          <button class="year-btn" onclick="changeVacYear(-1)">◄</button>
+          <span class="year-label" id="vacYearLabel">2026</span>
+          <button class="year-btn" onclick="changeVacYear(1)">►</button>
+        </div>
+        <button class="btn-add-member" onclick="openModal('modalAddMember')">+ <span id="lblAddMember">Adicionar Colaborador</span></button>
+      </div>
+      <div class="team-legend" id="teamLegend"></div>
+      <div class="card"><div class="calendar-grid" id="vacationGrid"></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL CLIENTE -->
+<div class="modal-overlay" id="modalClient">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <h3 id="clientModalTitle">👥 Cliente</h3>
+      <button class="modal-close" onclick="closeModal('modalClient')">✕</button>
+    </div>
+    <div class="modal-body" id="clientModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-action" onclick="closeModal('modalClient')" id="btnClientCancel">Cancelar</button>
+      <button class="btn-action primary" onclick="saveClientFromModal()" id="btnClientSave">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADD MEMBER -->
+<div class="modal-overlay" id="modalAddMember">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h3 id="lblAddMemberTitle">👤 Adicionar Colaborador</h3>
+      <button class="modal-close" onclick="closeModal('modalAddMember')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-field">
+        <label id="lblMemberName">Nome</label>
+        <input type="text" id="newMemberName" placeholder="Ex: Fernando">
+      </div>
+      <div class="detail-field">
+        <label id="lblMemberColor">Cor</label>
+        <input type="color" id="newMemberColor" value="#86efac" style="height:50px;cursor:pointer">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-action" onclick="closeModal('modalAddMember')" id="btnMemberCancel">Cancelar</button>
+      <button class="btn-action primary" onclick="addTeamMember()" id="btnMemberAdd">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOTAS -->
+<div class="modal-overlay" id="modalDayNotes">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="dayNotesTitle">📅 Dia</h3>
+      <button class="modal-close" onclick="closeModal('modalDayNotes')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="dayNotesList" style="margin-bottom:1.5rem"></div>
+      <div style="border-top:1px solid var(--ink-100);padding-top:1rem">
+        <div class="detail-field">
+          <label id="lblNoteTitle">Título</label>
+          <input type="text" id="noteTitle" placeholder="Ex: IVA Mensal">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+          <div class="detail-field">
+            <label id="lblNoteType">Tipo</label>
+            <select id="noteType">
+              <option value="fiscal" id="optNoteFiscal">🟡 Prazo Fiscal</option>
+              <option value="social" id="optNoteSocial">🔵 Segurança Social</option>
+              <option value="reuniao" id="optNoteReuniao">🟢 Reunião</option>
+              <option value="urgente" id="optNoteUrgente">🔴 Urgente</option>
+              <option value="pessoal" id="optNotePessoal">🟣 Pessoal</option>
+            </select>
+          </div>
+          <div class="detail-field">
+            <label id="lblNoteRecurrence">Recorrência</label>
+            <select id="noteRecurrence">
+              <option value="once" id="optRecOnce">Só este dia</option>
+              <option value="monthly" id="optRecMonthly">Todos os meses</option>
+              <option value="yearly" id="optRecYearly">Anual</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-action primary" onclick="addDayNote()" id="btnAddNote" style="margin-top:.5rem">+ Adicionar Lembrete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DROPDOWN FLUTUANTE -->
+<div id="dropdownMenu" style="position:fixed;background:#fff;border-radius:12px;
+  box-shadow:0 12px 32px rgba(0,0,0,.18);border:1px solid var(--ink-200);padding:.4rem;
+  min-width:220px;max-height:400px;overflow-y:auto;z-index:2000;display:none"></div>
+
+<script>
+/* ============================================================
+ *  TRADUÇÕES (PT, EN, ES, FR, DE) — conjunto reduzido mas completo
+ * ============================================================ */
+const T = {
+  pt:{brandSub:"Gestão de Clientes · Contabilidade",save:"Guardar",
+    menuSection:"Menu",mDashboard:"Dashboard",mClientes:"Clientes",mArquivados:"Arquivados",
+    mPesquisa:"Pesquisa",mCalendario:"Calendário",mFerias:"Mapa Férias",
+    hdrDashboard:"Dashboard",hdrDashboardSub:"Visão geral do escritório",
+    statTotal:"Total de Clientes",statTotalHint:"Carteira ativa",
+    statArchived:"Arquivados",statArchivedHint:"Fora da carteira",
+    statConferidos:"Conferidos",statConferidosHint:"Fechados",
+    statPendencias:"Pendências",statPendenciasHint:"Aguarda ação",
+    chartTitle:"📊 Distribuição por Estado",noData:"Sem dados para mostrar",
+    hdrClientes:"Clientes",hdrClientesSub:"Clique nos estados para alterar · Clique no nome para editar",
+    newClient:"Novo Cliente",filterSearch:"🔍 Pesquisar por nome ou NIF...",
+    optAllRegimes:"Todos os regimes",optRegOrg:"Contabilidade Organizada",
+    optRegNaoOrg:"Contabilidade Não Organizada",
+    thCliente:"Cliente",thCt:"CT",thData:"Data",thVendas:"Vendas",thCompras:"Compras",
+    thDeclaracoes:"Declarações",thNotas:"Notas",
+    hdrArquivados:"Clientes Arquivados",hdrArquivadosSub:"Podem ser restaurados",
+    thArchCliente:"Cliente",thArchNif:"NIF",thArchMotivo:"Motivo",
+    thArchData:"Data",thArchAcoes:"Ações",
+    noArchived:"Sem clientes arquivados",btnRestore:"Restaurar",btnDelete:"Apagar",
+    hdrPesquisa:"Pesquisa Rápida",hdrPesquisaSub:"Encontre um cliente em 2 segundos",
+    lblSearchTitle:"🔍 Procurar cliente",searchPlaceholder:"Digite o nome ou NIF...",
+    noResults:"Nenhum cliente encontrado",
+    hdrCalendario:"Calendário",hdrCalendarioSub:"Clique num dia para adicionar lembretes",
+    legendFiscal:"Prazo Fiscal",legendSocial:"Segurança Social",legendReuniao:"Reunião",
+    legendUrgente:"Urgente",legendPessoal:"Pessoal",
+    hdrFerias:"Mapa de Férias",hdrFeriasSub:"Selecione um colaborador e clique nos dias",
+    addMember:"Adicionar Colaborador",addMemberTitle:"👤 Adicionar Colaborador",
+    memberName:"Nome",memberColor:"Cor",btnCancel:"Cancelar",btnAdd:"Adicionar",
+    clientModalTitleEdit:"👥 Editar Cliente",clientModalTitleNew:"👥 Novo Cliente",
+    btnSave:"💾 Guardar",
+    cName:"Nome / Empresa",cNif:"NIF",cNiss:"NISS",cSenhaAT:"Senha AT",cSenhaSS:"Senha SS",
+    cMail:"Email",cRegime:"Regime",cContacto:"Contacto",
+    cCt:"CT",cData:"Data (mês entrega)",
+    ddView:"👁️ Ver / Editar",ddArchive:"📦 Arquivar",ddDelete:"🗑️ Apagar definitivo",
+    ddAddNew:"➕ Adicionar nova opção",ddEditCurrent:"✏️ Editar esta opção",
+    confirmDelete:"Apagar definitivamente?",confirmRestore:"Restaurar este cliente?",
+    confirmRemoveNote:"Remover este lembrete?",
+    placeholderName:"Nome completo",placeholderNif:"500000000",
+    placeholderNiss:"20000000000",placeholderMail:"email@exemplo.pt",
+    placeholderContacto:"+351 ...",
+    noteAdded:"Lembrete adicionado",noteRemoved:"Lembrete removido",
+    noteTitle:"Título",noteType:"Tipo",noteRecurrence:"Recorrência",
+    noteFiscal:"🟡 Prazo Fiscal",noteSocial:"🔵 Segurança Social",
+    noteReuniao:"🟢 Reunião",noteUrgente:"🔴 Urgente",notePessoal:"🟣 Pessoal",
+    recOnce:"Só este dia",recMonthly:"Todos os meses",recYearly:"Anual",
+    addNote:"+ Adicionar Lembrete",noNotesDay:"Sem lembretes neste dia",
+    dayOf:"Dia",selectMemberFirst:"Selecione primeiro um colaborador.",
+    memberAdded:"Colaborador adicionado",memberRemoved:"Colaborador removido",
+    confirmRemoveMember:"Remover este colaborador?",
+    clientAdded:"Cliente adicionado",clientUpdated:"Cliente atualizado",
+    clientArchived:"Cliente arquivado",clientRestored:"Cliente restaurado",
+    clientDeleted:"Cliente apagado",allSaved:"Tudo guardado",
+    lblArchiveTitle:"📦 Arquivar Cliente",lblArchiveReason:"Motivo do arquivo:",
+    optReasonFechou:"Fechou atividade",optReasonMudou:"Mudou de contabilista",
+    optReasonInativo:"Cliente inativo",optReasonOutro:"Outro",
+    btnArchiveConfirm:"📦 Arquivar",placeholderPassword:"••••••"},
+
+  en:{brandSub:"Client Management · Accounting",save:"Save",
+    menuSection:"Menu",mDashboard:"Dashboard",mClientes:"Clients",mArquivados:"Archived",
+    mPesquisa:"Search",mCalendario:"Calendar",mFerias:"Vacation Map",
+    hdrDashboard:"Dashboard",hdrDashboardSub:"Office overview",
+    statTotal:"Total Clients",statTotalHint:"Active portfolio",
+    statArchived:"Archived",statArchivedHint:"Outside portfolio",
+    statConferidos:"Checked",statConferidosHint:"Closed",
+    statPendencias:"Pending",statPendenciasHint:"Awaiting action",
+    chartTitle:"📊 Distribution by Status",noData:"No data to display",
+    hdrClientes:"Clients",hdrClientesSub:"Click statuses to change · Click name to edit",
+    newClient:"New Client",filterSearch:"🔍 Search by name or Tax ID...",
+    optAllRegimes:"All regimes",optRegOrg:"Organized Accounting",
+    optRegNaoOrg:"Non-Organized Accounting",
+    thCliente:"Client",thCt:"CT",thData:"Date",thVendas:"Sales",thCompras:"Purchases",
+    thDeclaracoes:"Declarations",thNotas:"Notes",
+    hdrArquivados:"Archived Clients",hdrArquivadosSub:"Can be restored",
+    thArchCliente:"Client",thArchNif:"Tax ID",thArchMotivo:"Reason",
+    thArchData:"Date",thArchAcoes:"Actions",
+    noArchived:"No archived clients",btnRestore:"Restore",btnDelete:"Delete",
+    hdrPesquisa:"Quick Search",hdrPesquisaSub:"Find a client in 2 seconds",
+    lblSearchTitle:"🔍 Search client",searchPlaceholder:"Type name or Tax ID...",
+    noResults:"No client found",
+    hdrCalendario:"Calendar",hdrCalendarioSub:"Click a day to add reminders",
+    legendFiscal:"Tax Deadline",legendSocial:"Social Security",legendReuniao:"Meeting",
+    legendUrgente:"Urgent",legendPessoal:"Personal",
+    hdrFerias:"Vacation Map",hdrFeriasSub:"Select a team member and click days",
+    addMember:"Add Team Member",addMemberTitle:"👤 Add Team Member",
+    memberName:"Name",memberColor:"Color",btnCancel:"Cancel",btnAdd:"Add",
+    clientModalTitleEdit:"👥 Edit Client",clientModalTitleNew:"👥 New Client",
+    btnSave:"💾 Save",
+    cName:"Name / Company",cNif:"Tax ID",cNiss:"SS Number",cSenhaAT:"Tax Password",
+    cSenhaSS:"SS Password",cMail:"Email",cRegime:"Regime",cContacto:"Contact",
+    cCt:"CT",cData:"Date (delivery month)",
+    ddView:"👁️ View / Edit",ddArchive:"📦 Archive",ddDelete:"🗑️ Delete permanently",
+    ddAddNew:"➕ Add new option",ddEditCurrent:"✏️ Edit this option",
+    confirmDelete:"Delete permanently?",confirmRestore:"Restore this client?",
+    confirmRemoveNote:"Remove this reminder?",
+    placeholderName:"Full name",placeholderNif:"500000000",
+    placeholderNiss:"20000000000",placeholderMail:"email@example.com",
+    placeholderContacto:"+351 ...",
+    noteAdded:"Reminder added",noteRemoved:"Reminder removed",
+    noteTitle:"Title",noteType:"Type",noteRecurrence:"Recurrence",
+    noteFiscal:"🟡 Tax Deadline",noteSocial:"🔵 Social Security",
+    noteReuniao:"🟢 Meeting",noteUrgente:"🔴 Urgent",notePessoal:"🟣 Personal",
+    recOnce:"Only this day",recMonthly:"Every month",recYearly:"Yearly",
+    addNote:"+ Add Reminder",noNotesDay:"No reminders on this day",
+    dayOf:"Day",selectMemberFirst:"Select a team member first.",
+    memberAdded:"Team member added",memberRemoved:"Team member removed",
+    confirmRemoveMember:"Remove this team member?",
+    clientAdded:"Client added",clientUpdated:"Client updated",
+    clientArchived:"Client archived",clientRestored:"Client restored",
+    clientDeleted:"Client deleted",allSaved:"All saved",
+    lblArchiveTitle:"📦 Archive Client",lblArchiveReason:"Archive reason:",
+    optReasonFechou:"Closed business",optReasonMudou:"Changed accountant",
+    optReasonInativo:"Inactive client",optReasonOutro:"Other",
+    btnArchiveConfirm:"📦 Archive",placeholderPassword:"••••••"},
+
+  es:{brandSub:"Gestión de Clientes · Contabilidad",save:"Guardar",
+    menuSection:"Menú",mDashboard:"Panel",mClientes:"Clientes",mArquivados:"Archivados",
+    mPesquisa:"Búsqueda",mCalendario:"Calendario",mFerias:"Mapa Vacaciones",
+    hdrDashboard:"Panel",hdrDashboardSub:"Visión general de la oficina",
+    statTotal:"Total de Clientes",statTotalHint:"Cartera activa",
+    statArchived:"Archivados",statArchivedHint:"Fuera de la cartera",
+    statConferidos:"Revisados",statConferidosHint:"Cerrados",
+    statPendencias:"Pendientes",statPendenciasHint:"Esperando acción",
+    chartTitle:"📊 Distribución por Estado",noData:"Sin datos para mostrar",
+    hdrClientes:"Clientes",hdrClientesSub:"Clic en los estados para cambiar · Clic en el nombre para editar",
+    newClient:"Nuevo Cliente",filterSearch:"🔍 Buscar por nombre o NIF...",
+    optAllRegimes:"Todos los regímenes",optRegOrg:"Contabilidad Organizada",
+    optRegNaoOrg:"Contabilidad No Organizada",
+    thCliente:"Cliente",thCt:"CT",thData:"Fecha",thVendas:"Ventas",thCompras:"Compras",
+    thDeclaracoes:"Declaraciones",thNotas:"Notas",
+    hdrArquivados:"Clientes Archivados",hdrArquivadosSub:"Pueden restaurarse",
+    thArchCliente:"Cliente",thArchNif:"NIF",thArchMotivo:"Motivo",
+    thArchData:"Fecha",thArchAcoes:"Acciones",
+    noArchived:"Sin clientes archivados",btnRestore:"Restaurar",btnDelete:"Eliminar",
+    hdrPesquisa:"Búsqueda Rápida",hdrPesquisaSub:"Encuentre un cliente en 2 segundos",
+    lblSearchTitle:"🔍 Buscar cliente",searchPlaceholder:"Escriba el nombre o NIF...",
+    noResults:"Ningún cliente encontrado",
+    hdrCalendario:"Calendario",hdrCalendarioSub:"Clic en un día para añadir recordatorios",
+    legendFiscal:"Plazo Fiscal",legendSocial:"Seguridad Social",legendReuniao:"Reunión",
+    legendUrgente:"Urgente",legendPessoal:"Personal",
+    hdrFerias:"Mapa de Vacaciones",hdrFeriasSub:"Seleccione un miembro y clic en los días",
+    addMember:"Añadir Miembro",addMemberTitle:"👤 Añadir Miembro",
+    memberName:"Nombre",memberColor:"Color",btnCancel:"Cancelar",btnAdd:"Añadir",
+    clientModalTitleEdit:"👥 Editar Cliente",clientModalTitleNew:"👥 Nuevo Cliente",
+    btnSave:"💾 Guardar",
+    cName:"Nombre / Empresa",cNif:"NIF",cNiss:"NUSS",cSenhaAT:"Contraseña AT",
+    cSenhaSS:"Contraseña SS",cMail:"Correo",cRegime:"Régimen",cContacto:"Contacto",
+    cCt:"CT",cData:"Fecha (mes entrega)",
+    ddView:"👁️ Ver / Editar",ddArchive:"📦 Archivar",ddDelete:"🗑️ Eliminar definitivo",
+    ddAddNew:"➕ Añadir nueva opción",ddEditCurrent:"✏️ Editar esta opción",
+    confirmDelete:"¿Eliminar definitivamente?",confirmRestore:"¿Restaurar este cliente?",
+    confirmRemoveNote:"¿Eliminar este recordatorio?",
+    placeholderName:"Nombre completo",placeholderNif:"500000000",
+    placeholderNiss:"20000000000",placeholderMail:"correo@ejemplo.es",
+    placeholderContacto:"+34 ...",
+    noteAdded:"Recordatorio añadido",noteRemoved:"Recordatorio eliminado",
+    noteTitle:"Título",noteType:"Tipo",noteRecurrence:"Recurrencia",
+    noteFiscal:"🟡 Plazo Fiscal",noteSocial:"🔵 Seguridad Social",
+    noteReuniao:"🟢 Reunión",noteUrgente:"🔴 Urgente",notePessoal:"🟣 Personal",
+    recOnce:"Solo este día",recMonthly:"Todos los meses",recYearly:"Anual",
+    addNote:"+ Añadir Recordatorio",noNotesDay:"Sin recordatorios este día",
+    dayOf:"Día",selectMemberFirst:"Seleccione primero un miembro.",
+    memberAdded:"Miembro añadido",memberRemoved:"Miembro eliminado",
+    confirmRemoveMember:"¿Eliminar este miembro?",
+    clientAdded:"Cliente añadido",clientUpdated:"Cliente actualizado",
+    clientArchived:"Cliente archivado",clientRestored:"Cliente restaurado",
+    clientDeleted:"Cliente eliminado",allSaved:"Todo guardado",
+    lblArchiveTitle:"📦 Archivar Cliente",lblArchiveReason:"Motivo del archivo:",
+    optReasonFechou:"Cerró actividad",optReasonMudou:"Cambió de contable",
+    optReasonInativo:"Cliente inactivo",optReasonOutro:"Otro",
+    btnArchiveConfirm:"📦 Archivar",placeholderPassword:"••••••"},
+
+  fr:{brandSub:"Gestion Clients · Comptabilité",save:"Enregistrer",
+    menuSection:"Menu",mDashboard:"Tableau de bord",mClientes:"Clients",mArquivados:"Archivés",
+    mPesquisa:"Recherche",mCalendario:"Calendrier",mFerias:"Congés",
+    hdrDashboard:"Tableau de bord",hdrDashboardSub:"Vue d'ensemble du cabinet",
+    statTotal:"Total Clients",statTotalHint:"Portefeuille actif",
+    statArchived:"Archivés",statArchivedHint:"Hors portefeuille",
+    statConferidos:"Vérifiés",statConferidosHint:"Clôturés",
+    statPendencias:"En attente",statPendenciasHint:"Action requise",
+    chartTitle:"📊 Répartition par État",noData:"Aucune donnée à afficher",
+    hdrClientes:"Clients",hdrClientesSub:"Cliquez sur les états pour modifier",
+    newClient:"Nouveau Client",filterSearch:"🔍 Rechercher par nom ou NIF...",
+    optAllRegimes:"Tous les régimes",optRegOrg:"Comptabilité Organisée",
+    optRegNaoOrg:"Comptabilité Non Organisée",
+    thCliente:"Client",thCt:"CT",thData:"Date",thVendas:"Ventes",thCompras:"Achats",
+    thDeclaracoes:"Déclarations",thNotas:"Notes",
+    hdrArquivados:"Clients Archivés",hdrArquivadosSub:"Peuvent être restaurés",
+    thArchCliente:"Client",thArchNif:"NIF",thArchMotivo:"Motif",
+    thArchData:"Date",thArchAcoes:"Actions",
+    noArchived:"Aucun client archivé",btnRestore:"Restaurer",btnDelete:"Supprimer",
+    hdrPesquisa:"Recherche Rapide",hdrPesquisaSub:"Trouvez un client en 2 secondes",
+    lblSearchTitle:"🔍 Rechercher un client",searchPlaceholder:"Tapez le nom ou NIF...",
+    noResults:"Aucun client trouvé",
+    hdrCalendario:"Calendrier",hdrCalendarioSub:"Cliquez sur un jour pour ajouter des rappels",
+    legendFiscal:"Échéance Fiscale",legendSocial:"Sécurité Sociale",legendReuniao:"Réunion",
+    legendUrgente:"Urgent",legendPessoal:"Personnel",
+    hdrFerias:"Carte des Congés",hdrFeriasSub:"Sélectionnez un membre et cliquez sur les jours",
+    addMember:"Ajouter Membre",addMemberTitle:"👤 Ajouter Membre",
+    memberName:"Nom",memberColor:"Couleur",btnCancel:"Annuler",btnAdd:"Ajouter",
+    clientModalTitleEdit:"👥 Modifier Client",clientModalTitleNew:"👥 Nouveau Client",
+    btnSave:"💾 Enregistrer",
+    cName:"Nom / Société",cNif:"NIF",cNiss:"NIR",cSenhaAT:"Mot de passe Impôts",
+    cSenhaSS:"Mot de passe SS",cMail:"Email",cRegime:"Régime",cContacto:"Contact",
+    cCt:"CT",cData:"Date (mois de livraison)",
+    ddView:"👁️ Voir / Éditer",ddArchive:"📦 Archiver",ddDelete:"🗑️ Supprimer définitivement",
+    ddAddNew:"➕ Ajouter nouvelle option",ddEditCurrent:"✏️ Modifier cette option",
+    confirmDelete:"Supprimer définitivement?",confirmRestore:"Restaurer ce client?",
+    confirmRemoveNote:"Supprimer ce rappel?",
+    placeholderName:"Nom complet",placeholderNif:"500000000",
+    placeholderNiss:"20000000000",placeholderMail:"email@exemple.fr",
+    placeholderContacto:"+33 ...",
+    noteAdded:"Rappel ajouté",noteRemoved:"Rappel supprimé",
+    noteTitle:"Titre",noteType:"Type",noteRecurrence:"Récurrence",
+    noteFiscal:"🟡 Échéance Fiscale",noteSocial:"🔵 Sécurité Sociale",
+    noteReuniao:"🟢 Réunion",noteUrgente:"🔴 Urgent",notePessoal:"🟣 Personnel",
+    recOnce:"Ce jour uniquement",recMonthly:"Tous les mois",recYearly:"Annuel",
+    addNote:"+ Ajouter Rappel",noNotesDay:"Aucun rappel ce jour",
+    dayOf:"Jour",selectMemberFirst:"Sélectionnez d'abord un membre.",
+    memberAdded:"Membre ajouté",memberRemoved:"Membre supprimé",
+    confirmRemoveMember:"Supprimer ce membre?",
+    clientAdded:"Client ajouté",clientUpdated:"Client mis à jour",
+    clientArchived:"Client archivé",clientRestored:"Client restauré",
+    clientDeleted:"Client supprimé",allSaved:"Tout enregistré",
+    lblArchiveTitle:"📦 Archiver Client",lblArchiveReason:"Motif d'archivage:",
+    optReasonFechou:"Activité fermée",optReasonMudou:"Changé de comptable",
+    optReasonInativo:"Client inactif",optReasonOutro:"Autre",
+    btnArchiveConfirm:"📦 Archiver",placeholderPassword:"••••••"},
+
+  de:{brandSub:"Kundenverwaltung · Buchhaltung",save:"Speichern",
+    menuSection:"Menü",mDashboard:"Dashboard",mClientes:"Kunden",mArquivados:"Archiviert",
+    mPesquisa:"Suche",mCalendario:"Kalender",mFerias:"Urlaubskarte",
+    hdrDashboard:"Dashboard",hdrDashboardSub:"Büroübersicht",
+    statTotal:"Kunden gesamt",statTotalHint:"Aktives Portfolio",
+    statArchived:"Archiviert",statArchivedHint:"Außerhalb des Portfolios",
+    statConferidos:"Geprüft",statConferidosHint:"Abgeschlossen",
+    statPendencias:"Ausstehend",statPendenciasHint:"Warten auf Aktion",
+    chartTitle:"📊 Verteilung nach Status",noData:"Keine Daten anzuzeigen",
+    hdrClientes:"Kunden",hdrClientesSub:"Klicken Sie auf Status zum Ändern",
+    newClient:"Neuer Kunde",filterSearch:"🔍 Nach Name oder Steuernummer suchen...",
+    optAllRegimes:"Alle Regime",optRegOrg:"Organisierte Buchhaltung",
+    optRegNaoOrg:"Nicht organisierte Buchhaltung",
+    thCliente:"Kunde",thCt:"CT",thData:"Datum",thVendas:"Verkäufe",thCompras:"Einkäufe",
+    thDeclaracoes:"Erklärungen",thNotas:"Notizen",
+    hdrArquivados:"Archivierte Kunden",hdrArquivadosSub:"Können wiederhergestellt werden",
+    thArchCliente:"Kunde",thArchNif:"Steuernr.",thArchMotivo:"Grund",
+    thArchData:"Datum",thArchAcoes:"Aktionen",
+    noArchived:"Keine archivierten Kunden",btnRestore:"Wiederherstellen",btnDelete:"Löschen",
+    hdrPesquisa:"Schnellsuche",hdrPesquisaSub:"Finden Sie einen Kunden in 2 Sekunden",
+    lblSearchTitle:"🔍 Kunde suchen",searchPlaceholder:"Name oder Steuernummer eingeben...",
+    noResults:"Kein Kunde gefunden",
+    hdrCalendario:"Kalender",hdrCalendarioSub:"Klicken Sie auf einen Tag, um Erinnerungen hinzuzufügen",
+    legendFiscal:"Steuerfrist",legendSocial:"Sozialversicherung",legendReuniao:"Besprechung",
+    legendUrgente:"Dringend",legendPessoal:"Persönlich",
+    hdrFerias:"Urlaubskarte",hdrFeriasSub:"Wählen Sie ein Teammitglied und klicken Sie auf Tage",
+    addMember:"Teammitglied hinzufügen",addMemberTitle:"👤 Teammitglied hinzufügen",
+    memberName:"Name",memberColor:"Farbe",btnCancel:"Abbrechen",btnAdd:"Hinzufügen",
+    clientModalTitleEdit:"👥 Kunde bearbeiten",clientModalTitleNew:"👥 Neuer Kunde",
+    btnSave:"💾 Speichern",
+    cName:"Name / Firma",cNif:"Steuernummer",cNiss:"SV-Nummer",cSenhaAT:"Steuer-Passwort",
+    cSenhaSS:"SV-Passwort",cMail:"E-Mail",cRegime:"Regime",cContacto:"Kontakt",
+    cCt:"CT",cData:"Datum (Liefermonat)",
+    ddView:"👁️ Ansehen / Bearbeiten",ddArchive:"📦 Archivieren",ddDelete:"🗑️ Endgültig löschen",
+    ddAddNew:"➕ Neue Option hinzufügen",ddEditCurrent:"✏️ Diese Option bearbeiten",
+    confirmDelete:"Endgültig löschen?",confirmRestore:"Diesen Kunden wiederherstellen?",
+    confirmRemoveNote:"Diese Erinnerung entfernen?",
+    placeholderName:"Vollständiger Name",placeholderNif:"500000000",
+    placeholderNiss:"20000000000",placeholderMail:"email@beispiel.de",
+    placeholderContacto:"+49 ...",
+    noteAdded:"Erinnerung hinzugefügt",noteRemoved:"Erinnerung entfernt",
+    noteTitle:"Titel",noteType:"Typ",noteRecurrence:"Wiederholung",
+    noteFiscal:"🟡 Steuerfrist",noteSocial:"🔵 Sozialversicherung",
+    noteReuniao:"🟢 Besprechung",noteUrgente:"🔴 Dringend",notePessoal:"🟣 Persönlich",
+    recOnce:"Nur dieser Tag",recMonthly:"Jeden Monat",recYearly:"Jährlich",
+    addNote:"+ Erinnerung hinzufügen",noNotesDay:"Keine Erinnerungen an diesem Tag",
+    dayOf:"Tag",selectMemberFirst:"Wählen Sie zuerst ein Teammitglied.",
+    memberAdded:"Teammitglied hinzugefügt",memberRemoved:"Teammitglied entfernt",
+    confirmRemoveMember:"Dieses Teammitglied entfernen?",
+    clientAdded:"Kunde hinzugefügt",clientUpdated:"Kunde aktualisiert",
+    clientArchived:"Kunde archiviert",clientRestored:"Kunde wiederhergestellt",
+    clientDeleted:"Kunde gelöscht",allSaved:"Alles gespeichert",
+    lblArchiveTitle:"📦 Kunde archivieren",lblArchiveReason:"Archivierungsgrund:",
+    optReasonFechou:"Geschäft geschlossen",optReasonMudou:"Buchhalter gewechselt",
+    optReasonInativo:"Inaktiver Kunde",optReasonOutro:"Andere",
+    btnArchiveConfirm:"📦 Archivieren",placeholderPassword:"••••••"}
+};
+
+const MONTH_NAMES = {
+  pt:['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+  en:['January','February','March','April','May','June','July','August','September','October','November','December'],
+  es:['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+  fr:['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
+  de:['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
+};
+
+/* ============================================================
+ *  LISTAS POR DEFEITO
+ * ============================================================ */
+const DEFAULT_LISTS = {
+  vendas:[{value:'Lancado',label:'Lançado',color:'#10b981'},
+          {value:'NaoTem',label:'Não tem',color:'#94a3b8'},
+          {value:'NaoIniciado',label:'Não iniciado',color:'#3b82f6'}],
+  compras:[{value:'Lancado',label:'Lançado',color:'#10b981'},
+           {value:'NaoTem',label:'Não tem',color:'#94a3b8'},
+           {value:'NaoIniciado',label:'Não iniciado',color:'#3b82f6'}],
+  declaracoes:[{value:'IVAMensal',label:'IVA Mensal',color:'#10b981'},
+               {value:'IVATrimestral',label:'IVA Trimestral',color:'#059669'},
+               {value:'SemDeclaracao',label:'Sem declaração',color:'#94a3b8'},
+               {value:'IsencaoArt9',label:'Isenção Art.º 9',color:'#3730a3'}],
+  notas:[{value:'Conferido',label:'CONFERIDO',color:'#10b981'},
+         {value:'Fechou',label:'FECHOU',color:'#ef4444'},
+         {value:'IVAPagar',label:'IVA A PAGAR',color:'#fb7185'},
+         {value:'IVAReceber',label:'IVA A RECEBER',color:'#38bdf8'},
+         {value:'IVAQuasePronto',label:'IVA QUASE PRONTO',color:'#eab308'},
+         {value:'EsperoResposta',label:'Espero resposta',color:'#fbbf24'}],
+  meses:[{value:'Janeiro',label:'Janeiro',color:'#3b82f6'},
+         {value:'Fevereiro',label:'Fevereiro',color:'#8b5cf6'},
+         {value:'Março',label:'Março',color:'#06b6d4'},
+         {value:'Abril',label:'Abril',color:'#10b981'},
+         {value:'Maio',label:'Maio',color:'#84cc16'},
+         {value:'Junho',label:'Junho',color:'#eab308'},
+         {value:'Julho',label:'Julho',color:'#f97316'},
+         {value:'Agosto',label:'Agosto',color:'#fb7185'},
+         {value:'Setembro',label:'Setembro',color:'#ec4899'},
+         {value:'Outubro',label:'Outubro',color:'#a855f7'},
+         {value:'Novembro',label:'Novembro',color:'#0891b2'},
+         {value:'Dezembro',label:'Dezembro',color:'#65a30d'}]
+};
+
+/* ============================================================
+ *  ESTADO
+ * ============================================================ */
+const state = {
+  language:'pt', clients:[], archived:[], team:[], vacations:[], notes:[],
+  currentPage:'dashboard', editingClientId:null, currentNoteDay:{year:0,month:0,day:0},
+  currentYear:new Date().getFullYear(), currentVacYear:new Date().getFullYear(),
+  selectedMember:null, lists:null
+};
+
+function t(k){ return (T[state.language] && T[state.language][k]) || k; }
+
+function getListValue(listName, value){
+  const list = state.lists[listName] || [];
+  const found = list.find(v => v.value === value);
+  if (found) return found;
+  return { label: value || '—', color:'#94a3b8' };
+}
+function translateMonth(value, fallback){
+  const monthsPT = MONTH_NAMES.pt;
+  const idx = monthsPT.indexOf(value);
+  if (idx === -1) return fallback || value;
+  return (MONTH_NAMES[state.language] || MONTH_NAMES.pt)[idx];
+}
+function escapeHtml(str){
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function contrastColor(hex){
+  if(!hex) return '#000';
+  const h = hex.replace('#','');
+  const r = parseInt(h.substr(0,2),16), g = parseInt(h.substr(2,2),16), b = parseInt(h.substr(4,2),16);
+  return (0.299*r + 0.587*g + 0.114*b)/255 > 0.6 ? '#0f172a' : '#fff';
+}
+function showNotification(msg, type='info'){
+  document.querySelectorAll('.notification').forEach(n => n.remove());
+  const n = document.createElement('div');
+  n.className = 'notification ' + type;
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => { n.style.opacity = '0'; setTimeout(() => n.remove(), 300); }, 2200);
+}
+function uid(){ return Date.now() + Math.floor(Math.random()*1000); }
+
+/* ============================================================
+ *  DEMO DATA
+ * ============================================================ */
+function createDemoData(){
+  return {
+    clients:[
+      {id:1,name:'Cliente Exemplo A, Lda',ct:'CTO',data:'Janeiro',
+       vendas:'Lancado',compras:'Lancado',declaracoes:'IVAMensal',notas:'Conferido',
+       folder:'',nif:'500111222',niss:'20011122233',senhaAT:'exemplo2024',
+       senhaSS:'exemploSS2024',mail:'geral@clientea.pt',
+       regime:'Contabilidade Organizada',contacto:'+351 912 000 001'},
+      {id:2,name:'Empresa Beta, SA',ct:'CTO',data:'Março',
+       vendas:'Lancado',compras:'NaoTem',declaracoes:'IVATrimestral',notas:'IVAReceber',
+       folder:'',nif:'500333444',niss:'20033344455',senhaAT:'beta2024',
+       senhaSS:'betaSS2024',mail:'info@empresabeta.pt',
+       regime:'Contabilidade Organizada',contacto:'+351 912 000 002'},
+      {id:3,name:'Gama & Filhos, Unipessoal Lda',ct:'CTNO',data:'Julho',
+       vendas:'NaoTem',compras:'Lancado',declaracoes:'IsencaoArt9',notas:'IVAPagar',
+       folder:'',nif:'500555666',niss:'20055566677',senhaAT:'gama2024',
+       senhaSS:'gamaSS2024',mail:'contacto@gamafilhos.pt',
+       regime:'Contabilidade Não Organizada',contacto:'+351 912 000 003'}
+    ],
+    team:[
+      {id:1,name:'Fernando',color:'#86efac'},
+      {id:2,name:'Carlos',color:'#7dd3fc'}
+    ],
+    vacations:[],notes:[]
+  };
+}
+
+/* ============================================================
+ *  TRADUÇÕES APLICADAS
+ * ============================================================ */
+function applyTranslations(){
+  const map = {
+    lblBrandSub:'brandSub',lblSave:'save',lblMenuSection:'menuSection',
+    lblMenuDashboard:'mDashboard',lblMenuClientes:'mClientes',lblMenuArquivados:'mArquivados',
+    lblMenuPesquisa:'mPesquisa',lblMenuCalendario:'mCalendario',lblMenuFerias:'mFerias',
+    hdrDashboard:'hdrDashboard',hdrDashboardSub:'hdrDashboardSub',
+    lblStatTotal:'statTotal',lblStatTotalHint:'statTotalHint',
+    lblStatArchived:'statArchived',lblStatArchivedHint:'statArchivedHint',
+    lblStatConferidos:'statConferidos',lblStatConferidosHint:'statConferidosHint',
+    lblStatPendencias:'statPendencias',lblStatPendenciasHint:'statPendenciasHint',
+    lblChartTitle:'chartTitle',
+    hdrClientes:'hdrClientes',hdrClientesSub:'hdrClientesSub',lblNewClient:'newClient',
+    optAllRegimes:'optAllRegimes',optRegOrg:'optRegOrg',optRegNaoOrg:'optRegNaoOrg',
+    thCliente:'thCliente',thCt:'thCt',thData:'thData',thVendas:'thVendas',
+    thCompras:'thCompras',thDeclaracoes:'thDeclaracoes',thNotas:'thNotas',
+    hdrArquivados:'hdrArquivados',hdrArquivadosSub:'hdrArquivadosSub',
+    thArchCliente:'thArchCliente',thArchNif:'thArchNif',thArchMotivo:'thArchMotivo',
+    thArchData:'thArchData',thArchAcoes:'thArchAcoes',
+    hdrPesquisa:'hdrPesquisa',hdrPesquisaSub:'hdrPesquisaSub',lblSearchTitle:'lblSearchTitle',
+    hdrCalendario:'hdrCalendario',hdrCalendarioSub:'hdrCalendarioSub',
+    legendFiscal:'legendFiscal',legendSocial:'legendSocial',legendReuniao:'legendReuniao',
+    legendUrgente:'legendUrgente',legendPessoal:'legendPessoal',
+    hdrFerias:'hdrFerias',hdrFeriasSub:'hdrFeriasSub',lblAddMember:'addMember',
+    lblAddMemberTitle:'addMemberTitle',lblMemberName:'memberName',lblMemberColor:'memberColor',
+    btnMemberCancel:'btnCancel',btnMemberAdd:'btnAdd',
+    btnClientCancel:'btnCancel',btnClientSave:'btnSave',
+    lblNoteTitle:'noteTitle',lblNoteType:'noteType',lblNoteRecurrence:'noteRecurrence',
+    optNoteFiscal:'noteFiscal',optNoteSocial:'noteSocial',optNoteReuniao:'noteReuniao',
+    optNoteUrgente:'noteUrgente',optNotePessoal:'notePessoal',
+    optRecOnce:'recOnce',optRecMonthly:'recMonthly',optRecYearly:'recYearly',
+    btnAddNote:'addNote'
+  };
+  Object.entries(map).forEach(([id,key]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t(key);
+  });
+  document.getElementById('filterInput').placeholder = t('filterSearch');
+  document.getElementById('searchInput').placeholder = t('searchPlaceholder');
+  // Re-render
+  renderClients(); renderDashboard(); renderArchived();
+  renderCalendar(); renderTeamLegend(); renderVacation();
+}
+
+/* ============================================================
+ *  NAVEGAÇÃO
+ * ============================================================ */
+function switchPage(pageId, btn){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  state.currentPage = pageId;
+  if (pageId === 'dashboard') renderDashboard();
+  if (pageId === 'clientes') renderClients();
+  if (pageId === 'arquivados') renderArchived();
+  if (pageId === 'calendario') renderCalendar();
+  if (pageId === 'ferias'){ renderTeamLegend(); renderVacation(); }
+}
+
+function switchLanguage(lang){
+  state.language = lang;
+  applyTranslations();
+}
+
+/* ============================================================
+ *  DASHBOARD
+ * ============================================================ */
+let chartInstance = null;
+function renderDashboard(){
+  const active = state.clients;
+  document.getElementById('statTotal').textContent = active.length;
+  document.getElementById('statArchived').textContent = state.archived.length;
+  document.getElementById('statConferidos').textContent =
+    active.filter(c => c.notas === 'Conferido').length;
+  document.getElementById('statPendencias').textContent =
+    active.filter(c => ['IVAPagar','IVAReceber','EsperoResposta'].includes(c.notas)).length;
+  document.getElementById('hdrDashboardSub').textContent =
+    active.length + ' ' + t('statTotalHint').toLowerCase();
+
+  const ctx = document.getElementById('chartEstados');
+  if (!ctx) return;
+  const counts = {};
+  active.forEach(c => {
+    const item = getListValue('notas', c.notas);
+    if (!counts[item.label]) counts[item.label] = { count:0, color:item.color };
+    counts[item.label].count++;
+  });
+
+  if (chartInstance) chartInstance.destroy();
+
+  if (Object.keys(counts).length === 0){
+    const parent = ctx.parentElement;
+    parent.innerHTML = '<canvas id="chartEstados"></canvas>' +
+      '<p style="text-align:center;color:var(--ink-400);padding:2rem 0">' +
+      t('noData') + '</p>';
+    return;
+  }
+  chartInstance = new Chart(ctx.getContext('2d'),{
+    type:'doughnut',
+    data:{
+      labels:Object.keys(counts),
+      datasets:[{
+        data:Object.values(counts).map(o => o.count),
+        backgroundColor:Object.values(counts).map(o => o.color),
+        borderColor:'#fff',borderWidth:4,hoverOffset:12
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:11},padding:10}}}}
+  });
+}
+
+/* ============================================================
+ *  TABELA DE CLIENTES
+ * ============================================================ */
+function renderClients(){
+  const tbody = document.getElementById('clientsBody');
+  if (!tbody) return;
+  const filter = (document.getElementById('filterInput').value || '').toLowerCase();
+  const regime = document.getElementById('filterRegime').value;
+
+  const filtered = state.clients.filter(c => {
+    const ok1 = !filter || c.name.toLowerCase().includes(filter) ||
+                (c.nif && c.nif.includes(filter));
+    const ok2 = !regime || c.regime === regime;
+    return ok1 && ok2;
+  });
+
+  if (filtered.length === 0){
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--ink-400)">' +
+      t('noData') + '</td></tr>';
+    document.getElementById('archCount').textContent = state.archived.length;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(c => {
+    const folderIcon = c.folder
+      ? `<a href="${c.folder}" target="_blank" class="folder-btn">📁</a>`
+      : `<span class="folder-btn" style="opacity:.25">⚪</span>`;
+    const mes = getListValue('meses', c.data);
+    const mesLabel = translateMonth(mes.value, mes.label);
+    const vendas = getListValue('vendas', c.vendas);
+    const compras = getListValue('compras', c.compras);
+    const decl = getListValue('declaracoes', c.declaracoes);
+    const notas = getListValue('notas', c.notas);
+
+    const mk = (listName,item,label) =>
+      `<span class="drop-cell" style="background:${item.color};color:${contrastColor(item.color)}"
+        onclick="openDropdown(event,'${listName}',${c.id})">${escapeHtml(label)}</span>`;
+
+    return `<tr>
+      <td style="text-align:center">${folderIcon}</td>
+      <td><span class="client-name" onclick="openClientModal(${c.id})">${escapeHtml(c.name)}</span></td>
+      <td>${c.ct || '—'}</td>
+      <td>${mk('meses',mes,mesLabel)}</td>
+      <td>${mk('vendas',vendas,vendas.label)}</td>
+      <td>${mk('compras',compras,compras.label)}</td>
+      <td>${mk('declaracoes',decl,decl.label)}</td>
+      <td>${mk('notas',notas,notas.label)}</td>
+      <td style="text-align:center">
+        <button onclick="showClientMenu(event,${c.id})"
+          style="background:transparent;border:none;cursor:pointer;font-size:1.1rem">⋮</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('archCount').textContent = state.archived.length;
+}
+
+/* ============================================================
+ *  DROPDOWN EM CONTEXTO
+ * ============================================================ */
+function openDropdown(event, listName, clientId){
+  event.stopPropagation();
+  const menu = document.getElementById('dropdownMenu');
+  const client = state.clients.find(c => c.id === clientId);
+  if (!client) return;
+  const list = state.lists[listName] || [];
+  const current = (listName === 'meses') ? client.data : client[listName];
+
+  menu.innerHTML = list.map(item => {
+    const label = (listName === 'meses') ? translateMonth(item.value, item.label) : item.label;
+    return `<div onclick="pickDropdown('${listName}',${clientId},'${item.value}')"
+      style="padding:.55rem .8rem;border-radius:8px;font-size:.82rem;font-weight:600;
+      cursor:pointer;display:flex;align-items:center;gap:.5rem;
+      ${item.value === current ? 'background:var(--accent-soft);color:var(--accent-dark)' : ''}">
+      <span style="width:10px;height:10px;border-radius:50%;background:${item.color}"></span>
+      ${escapeHtml(label)}
+    </div>`;
+  }).join('');
+
+  const rect = event.target.getBoundingClientRect();
+  menu.style.left = Math.min(rect.left, window.innerWidth - 240) + 'px';
+  menu.style.top = Math.min(rect.bottom + 4, window.innerHeight - 410) + 'px';
+  menu.style.display = 'block';
+}
+
+function pickDropdown(listName, clientId, value){
+  const client = state.clients.find(c => c.id === clientId);
+  if (client){
+    if (listName === 'meses') client.data = value;
+    else client[listName] = value;
+  }
+  document.getElementById('dropdownMenu').style.display = 'none';
+  renderClients(); renderDashboard();
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('dropdownMenu').style.display = 'none';
+});
+
+/* ============================================================
+ *  MENU DO CLIENTE (⋮)
+ * ============================================================ */
+function showClientMenu(event, clientId){
+  event.stopPropagation();
+  const menu = document.getElementById('dropdownMenu');
+  menu.innerHTML = `
+    <div onclick="openClientModal(${clientId})" style="padding:.55rem .8rem;border-radius:8px;
+      font-size:.8rem;font-weight:700;cursor:pointer;color:var(--accent-dark)"
+      onmouseover="this.style.background='var(--accent-soft)'"
+      onmouseout="this.style.background=''">${t('ddView')}</div>
+    <div onclick="archiveClient(${clientId})" style="padding:.55rem .8rem;border-radius:8px;
+      font-size:.8rem;font-weight:700;cursor:pointer;color:var(--accent-dark)"
+      onmouseover="this.style.background='var(--accent-soft)'"
+      onmouseout="this.style.background=''">${t('ddArchive')}</div>
+    <div style="height:1px;background:var(--ink-100);margin:.4rem 0"></div>
+    <div onclick="deleteClient(${clientId})" style="padding:.55rem .8rem;border-radius:8px;
+      font-size:.8rem;font-weight:700;cursor:pointer;color:var(--danger)"
+      onmouseover="this.style.background='#fde8e8'"
+      onmouseout="this.style.background=''">${t('ddDelete')}</div>
+  `;
+  const rect = event.target.getBoundingClientRect();
+  menu.style.left = Math.max(10, rect.right - 240) + 'px';
+  menu.style.top = (rect.bottom + 4) + 'px';
+  menu.style.display = 'block';
+}
+
+/* ============================================================
+ *  MODAL DE CLIENTE
+ * ============================================================ */
+function openClientModal(clientId){
+  state.editingClientId = clientId;
+  const isNew = clientId === -1;
+  const baseClient = {
+    id:-1,name:'',ct:'CTO',data:'Janeiro',
+    vendas:'Lancado',compras:'Lancado',declaracoes:'IVAMensal',notas:'Conferido',
+    folder:'',nif:'',niss:'',senhaAT:'',senhaSS:'',mail:'',
+    regime:'Contabilidade Organizada',contacto:''
+  };
+  const client = isNew ? baseClient : state.clients.find(c => c.id === clientId);
+  if (!client) return;
+
+  document.getElementById('clientModalTitle').textContent =
+    isNew ? t('clientModalTitleNew') : t('clientModalTitleEdit');
+
+  const opts = (listName, sel) => (state.lists[listName] || []).map(i => {
+    const label = (listName === 'meses') ? translateMonth(i.value, i.label) : i.label;
+    return `<option value="${i.value}" ${i.value === sel ? 'selected' : ''}>${escapeHtml(label)}</option>`;
+  }).join('');
+
+  document.getElementById('clientModalBody').innerHTML = `
+    <div class="client-detail-grid">
+      <div class="detail-field" style="grid-column:1/-1">
+        <label>${t('cName')}</label>
+        <input type="text" id="cName" value="${escapeHtml(client.name)}" placeholder="${t('placeholderName')}">
+      </div>
+      <div class="detail-field"><label>${t('cNif')}</label>
+        <input type="text" id="cNif" value="${escapeHtml(client.nif)}" placeholder="${t('placeholderNif')}"></div>
+      <div class="detail-field"><label>${t('cNiss')}</label>
+        <input type="text" id="cNiss" value="${escapeHtml(client.niss)}" placeholder="${t('placeholderNiss')}"></div>
+      <div class="detail-field"><label>${t('cSenhaAT')}</label>
+        <input type="text" id="cSenhaAT" value="${escapeHtml(client.senhaAT)}" placeholder="${t('placeholderPassword')}"></div>
+      <div class="detail-field"><label>${t('cSenhaSS')}</label>
+        <input type="text" id="cSenhaSS" value="${escapeHtml(client.senhaSS)}" placeholder="${t('placeholderPassword')}"></div>
+      <div class="detail-field"><label>${t('cMail')}</label>
+        <input type="text" id="cMail" value="${escapeHtml(client.mail)}" placeholder="${t('placeholderMail')}"></div>
+      <div class="detail-field"><label>${t('cRegime')}</label>
+        <select id="cRegime">
+          <option value="Contabilidade Organizada" ${client.regime === 'Contabilidade Organizada' ? 'selected' : ''}>${t('optRegOrg')}</option>
+          <option value="Contabilidade Não Organizada" ${client.regime === 'Contabilidade Não Organizada' ? 'selected' : ''}>${t('optRegNaoOrg')}</option>
+        </select></div>
+      <div class="detail-field"><label>${t('cContacto')}</label>
+        <input type="text" id="cContacto" value="${escapeHtml(client.contacto)}" placeholder="${t('placeholderContacto')}"></div>
+      <div class="detail-field"><label>${t('cCt')}</label>
+        <select id="cCt">
+          <option value="CTO" ${client.ct === 'CTO' ? 'selected' : ''}>CTO</option>
+          <option value="CTNO" ${client.ct === 'CTNO' ? 'selected' : ''}>CTNO</option>
+          <option value="CNT" ${client.ct === 'CNT' ? 'selected' : ''}>CNT</option>
+        </select></div>
+      <div class="detail-field"><label>${t('cData')}</label>
+        <select id="cData">${opts('meses', client.data)}</select></div>
+      <div class="detail-field"><label>${t('thVendas')}</label>
+        <select id="c_vendas">${opts('vendas', client.vendas)}</select></div>
+      <div class="detail-field"><label>${t('thCompras')}</label>
+        <select id="c_compras">${opts('compras', client.compras)}</select></div>
+      <div class="detail-field"><label>${t('thDeclaracoes')}</label>
+        <select id="c_declaracoes">${opts('declaracoes', client.declaracoes)}</select></div>
+      <div class="detail-field"><label>${t('thNotas')}</label>
+        <select id="c_notas">${opts('notas', client.notas)}</select></div>
+    </div>
+  `;
+  document.getElementById('modalClient').classList.add('active');
+}
+
+function saveClientFromModal(){
+  const name = document.getElementById('cName').value.trim();
+  if (!name){ alert('Introduza o nome.'); return; }
+  const data = {
+    name,
+    nif: document.getElementById('cNif').value.trim(),
+    niss: document.getElementById('cNiss').value.trim(),
+    senhaAT: document.getElementById('cSenhaAT').value,
+    senhaSS: document.getElementById('cSenhaSS').value,
+    mail: document.getElementById('cMail').value.trim(),
+    regime: document.getElementById('cRegime').value,
+    contacto: document.getElementById('cContacto').value.trim(),
+    ct: document.getElementById('cCt').value,
+    data: document.getElementById('cData').value,
+    vendas: document.getElementById('c_vendas').value,
+    compras: document.getElementById('c_compras').value,
+    declaracoes: document.getElementById('c_declaracoes').value,
+    notas: document.getElementById('c_notas').value
+  };
+  if (state.editingClientId === -1){
+    const newId = state.clients.length > 0 ? Math.max(...state.clients.map(c => c.id)) + 1 : 1;
+    state.clients.push({ id:newId, ...data });
+    showNotification('✅ ' + t('clientAdded'), 'success');
+  } else {
+    const idx = state.clients.findIndex(c => c.id === state.editingClientId);
+    if (idx !== -1) state.clients[idx] = { ...state.clients[idx], ...data };
+    showNotification('✅ ' + t('clientUpdated'), 'success');
+  }
+  closeModal('modalClient');
+  renderClients(); renderDashboard();
+}
+
+/* ============================================================
+ *  ARQUIVAR / RESTAURAR / APAGAR
+ * ============================================================ */
+function archiveClient(clientId){
+  const client = state.clients.find(c => c.id === clientId);
+  if (!client) return;
+  state.archived.push({
+    id:uid(), name:client.name, nif:client.nif,
+    reason:'Fechou atividade', archivedAt:new Date().toISOString().slice(0,10)
+  });
+  state.clients = state.clients.filter(c => c.id !== clientId);
+  document.getElementById('dropdownMenu').style.display = 'none';
+  renderClients(); renderDashboard(); renderArchived();
+  showNotification('📦 ' + t('clientArchived'), 'info');
+}
+
+function renderArchived(){
+  const tbody = document.getElementById('archivedBody');
+  if (!tbody) return;
+  if (state.archived.length === 0){
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ink-400)">' +
+      t('noArchived') + '</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.archived.map(c => `
+    <tr>
+      <td style="font-weight:600">${escapeHtml(c.name)}</td>
+      <td>${c.nif || '—'}</td>
+      <td>${c.reason}</td>
+      <td>${c.archivedAt}</td>
+      <td style="text-align:right">
+        <button class="btn-action" onclick="restoreClient(${c.id})" style="font-size:.75rem;padding:.35rem .7rem">
+          ↩️ ${t('btnRestore')}</button>
+        <button class="btn-action danger" onclick="deleteArchived(${c.id})" style="font-size:.75rem;padding:.35rem .7rem">
+          🗑️ ${t('btnDelete')}</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function restoreClient(clientId){
+  const arch = state.archived.find(c => c.id === clientId);
+  if (!arch) return;
+  if (!confirm(t('confirmRestore'))) return;
+  const newId = state.clients.length > 0 ? Math.max(...state.clients.map(c => c.id)) + 1 : 1;
+  state.clients.push({
+    id:newId, name:arch.name, nif:arch.nif, ct:'CTO', data:'Janeiro',
+    vendas:'Lancado', compras:'Lancado', declaracoes:'IVAMensal', notas:'Conferido',
+    folder:'', niss:'', senhaAT:'', senhaSS:'', mail:'',
+    regime:'Contabilidade Organizada', contacto:''
+  });
+  state.archived = state.archived.filter(c => c.id !== clientId);
+  renderArchived(); renderClients(); renderDashboard();
+  showNotification('↩️ ' + t('clientRestored'), 'success');
+}
+
+function deleteArchived(clientId){
+  if (!confirm(t('confirmDelete'))) return;
+  state.archived = state.archived.filter(c => c.id !== clientId);
+  renderArchived(); renderDashboard();
+  showNotification('🗑️ ' + t('clientDeleted'), 'error');
+}
+
+function deleteClient(clientId){
+  if (!confirm(t('confirmDelete'))) return;
+  state.clients = state.clients.filter(c => c.id !== clientId);
+  document.getElementById('dropdownMenu').style.display = 'none';
+  renderClients(); renderDashboard();
+  showNotification('🗑️ ' + t('clientDeleted'), 'error');
+}
+
+/* ============================================================
+ *  PESQUISA
+ * ============================================================ */
+function searchClient(query){
+  const results = document.getElementById('searchResults');
+  if (!query || query.length < 2){ results.innerHTML = ''; return; }
+  const q = query.toLowerCase();
+  const matches = state.clients.filter(c =>
+    c.name.toLowerCase().includes(q) || (c.nif && c.nif.includes(q))
+  );
+  if (matches.length === 0){
+    results.innerHTML = `<div class="card" style="text-align:center;padding:3rem;color:var(--ink-500)">🔍 ${t('noResults')}</div>`;
+    return;
+  }
+  results.innerHTML = matches.map(c => `
+    <div class="search-result">
+      <div class="search-result-name">${escapeHtml(c.name)}</div>
+      <div class="search-result-grid">
+        <div class="search-result-item"><span class="lbl">${t('cNif')}</span><span class="val mono">${c.nif||'—'}</span></div>
+        <div class="search-result-item"><span class="lbl">${t('cNiss')}</span><span class="val mono">${c.niss||'—'}</span></div>
+        <div class="search-result-item"><span class="lbl">${t('cSenhaAT')}</span><span class="val mono">${c.senhaAT||'—'}</span></div>
+        <div class="search-result-item"><span class="lbl">${t('cSenhaSS')}</span><span class="val mono">${c.senhaSS||'—'}</span></div>
+        <div class="search-result-item"><span class="lbl">${t('cMail')}</span><span class="val">${c.mail||'—'}</span></div>
+        <div class="search-result-item"><span class="lbl">${t('cRegime')}</span><span class="val">${c.regime||'—'}</span></div>
+      </div>
+      <button class="btn-action primary" onclick="openClientModal(${c.id})">📇 ${t('ddView')}</button>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+ *  CALENDÁRIO
+ * ============================================================ */
+function renderCalendar(){
+  const year = state.currentYear;
+  const container = document.getElementById('calendarGrid');
+  if (!container) return;
+  document.getElementById('calYearLabel').textContent = year;
+
+  const monthNames = MONTH_NAMES[state.language] || MONTH_NAMES.pt;
+  const weekHeads = {
+    pt:['S','T','Q','Q','S','S','D'],en:['M','T','W','T','F','S','S'],
+    es:['L','M','X','J','V','S','D'],fr:['L','M','M','J','V','S','D'],
+    de:['M','D','M','D','F','S','S']
+  }[state.language] || ['S','T','Q','Q','S','S','D'];
+
+  let html = '';
+  for (let idx = 0; idx < 12; idx++){
+    const firstDay = new Date(year, idx, 1).getDay();
+    const daysInMonth = new Date(year, idx + 1, 0).getDate();
+    const offset = (firstDay + 6) % 7;
+    let daysHtml = '';
+    weekHeads.forEach(d => { daysHtml += `<div class="day-head">${d}</div>`; });
+    for (let i = 0; i < offset; i++) daysHtml += '<div class="day empty"></div>';
+    for (let d = 1; d <= daysInMonth; d++){
+      const dow = (offset + d - 1) % 7;
+      const weekend = dow >= 5 ? 'weekend' : '';
+      const dayNotes = getNotesForDay(year, idx, d);
+      let dots = '';
+      if (dayNotes.length > 0){
+        dots = '<div class="note-dots">' + dayNotes.slice(0,4).map(n => {
+          const color = getNoteTypeColor(n.type);
+          return `<div class="note-dot" style="background:${color}"></div>`;
+        }).join('') + '</div>';
+      }
+      daysHtml += `<div class="day ${weekend}" onclick="openDayNotes(${year},${idx},${d})">${d}${dots}</div>`;
+    }
+    html += `<div class="calendar-month">
+      <div class="calendar-month-title">${monthNames[idx]} ${year}</div>
+      <div class="calendar-days">${daysHtml}</div>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+function changeYear(delta){
+  state.currentYear += delta;
+  renderCalendar();
+}
+
+function getNotesForDay(year, month, day){
+  const result = [];
+  state.notes.forEach(n => {
+    if (n.year === year && n.month === month && n.day === day){ result.push(n); return; }
+    if (n.recurrence === 'monthly' && n.day === day){ result.push(n); return; }
+    if (n.recurrence === 'yearly' && n.month === month && n.day === day){ result.push(n); return; }
+  });
+  return result;
+}
+
+function getNoteTypeColor(type){
+  return { fiscal:'#eab308',social:'#3b82f6',reuniao:'#10b981',urgente:'#ef4444',pessoal:'#a855f7' }[type] || '#94a3b8';
+}
+function getNoteTypeLabel(type){
+  return { fiscal:t('noteFiscal'),social:t('noteSocial'),reuniao:t('noteReuniao'),
+           urgente:t('noteUrgente'),pessoal:t('notePessoal') }[type] || type;
+}
+function recurrenceLabel(r){
+  return { once:t('recOnce'),monthly:t('recMonthly'),yearly:t('recYearly') }[r] || r;
+}
+
+/* ============================================================
+ *  MODAL DE NOTAS
+ * ============================================================ */
+function openDayNotes(year, month, day){
+  state.currentNoteDay = { year, month, day };
+  const monthNames = MONTH_NAMES[state.language] || MONTH_NAMES.pt;
+  document.getElementById('dayNotesTitle').textContent =
+    `${t('dayOf')} ${day} · ${monthNames[month]} ${year}`;
+  renderDayNotesList();
+  document.getElementById('noteTitle').value = '';
+  document.getElementById('noteType').value = 'fiscal';
+  document.getElementById('noteRecurrence').value = 'once';
+  document.getElementById('modalDayNotes').classList.add('active');
+}
+
+function renderDayNotesList(){
+  const list = document.getElementById('dayNotesList');
+  const { year, month, day } = state.currentNoteDay;
+  const notes = getNotesForDay(year, month, day);
+  if (notes.length === 0){
+    list.innerHTML = `<p style="color:var(--ink-500);text-align:center;padding:1rem 0">${t('noNotesDay')}</p>`;
+    return;
+  }
+  list.innerHTML = notes.map(n => `
+    <div class="day-note-item ${n.type}">
+      <div>
+        <span class="note-title">${escapeHtml(n.title)}</span>
+        <span class="note-meta">${getNoteTypeLabel(n.type)} · ${recurrenceLabel(n.recurrence)}</span>
+      </div>
+      <button class="btn-remove-note" onclick="removeDayNote(${n.id})">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function addDayNote(){
+  const title = document.getElementById('noteTitle').value.trim();
+  const type = document.getElementById('noteType').value;
+  const recurrence = document.getElementById('noteRecurrence').value;
+  if (!title){ alert('Escreva um título.'); return; }
+  state.notes.push({
+    id:uid(), year:state.currentNoteDay.year, month:state.currentNoteDay.month,
+    day:state.currentNoteDay.day, title, type, recurrence
+  });
+  document.getElementById('noteTitle').value = '';
+  renderDayNotesList(); renderCalendar();
+  showNotification('✅ ' + t('noteAdded'), 'success');
+}
+
+function removeDayNote(noteId){
+  if (!confirm(t('confirmRemoveNote'))) return;
+  state.notes = state.notes.filter(n => n.id !== noteId);
+  renderDayNotesList(); renderCalendar();
+  showNotification('🗑️ ' + t('noteRemoved'), 'info');
+}
+
+/* ============================================================
+ *  MAPA DE FÉRIAS
+ * ============================================================ */
+function renderTeamLegend(){
+  const legend = document.getElementById('teamLegend');
+  if (!legend) return;
+  if (state.team.length === 0){
+    legend.innerHTML = `<p style="color:var(--ink-400);font-size:.85rem">${t('selectMemberFirst')}</p>`;
+    return;
+  }
+  legend.innerHTML = state.team.map(m => `
+    <div class="team-member ${state.selectedMember === m.id ? 'active' : ''}" onclick="selectMember(${m.id})">
+      <div class="team-color-dot" style="background:${m.color}"></div>
+      <span>${escapeHtml(m.name)}</span>
+      <button class="team-remove" onclick="event.stopPropagation();removeTeamMember(${m.id})">✕</button>
+    </div>
+  `).join('');
+}
+
+function selectMember(id){
+  state.selectedMember = (state.selectedMember === id) ? null : id;
+  renderTeamLegend(); renderVacation();
+}
+
+function removeTeamMember(id){
+  if (!confirm(t('confirmRemoveMember'))) return;
+  state.team = state.team.filter(m => m.id !== id);
+  state.vacations = state.vacations.filter(v => v.memberId !== id);
+  if (state.selectedMember === id) state.selectedMember = null;
+  renderTeamLegend(); renderVacation();
+  showNotification('👤 ' + t('memberRemoved'), 'info');
+}
+
+function renderVacation(){
+  const year = state.currentVacYear;
+  const container = document.getElementById('vacationGrid');
+  if (!container) return;
+  document.getElementById('vacYearLabel').textContent = year;
+
+  const monthNames = MONTH_NAMES[state.language] || MONTH_NAMES.pt;
+  const weekHeads = {
+    pt:['S','T','Q','Q','S','S','D'],en:['M','T','W','T','F','S','S'],
+    es:['L','M','X','J','V','S','D'],fr:['L','M','M','J','V','S','D'],
+    de:['M','D','M','D','F','S','S']
+  }[state.language] || ['S','T','Q','Q','S','S','D'];
+
+  let html = '';
+  for (let idx = 0; idx < 12; idx++){
+    const firstDay = new Date(year, idx, 1).getDay();
+    const daysInMonth = new Date(year, idx + 1, 0).getDate();
+    const offset = (firstDay + 6) % 7;
+    let daysHtml = '';
+    weekHeads.forEach(d => { daysHtml += `<div class="day-head">${d}</div>`; });
+    for (let i = 0; i < offset; i++) daysHtml += '<div class="day empty"></div>';
+    for (let d = 1; d <= daysInMonth; d++){
+      const vac = state.vacations.find(v =>
+        v.year === year && v.month === idx && v.day === d
+      );
+      let cls = 'day', style = '';
+      if (vac){
+        const m = state.team.find(tm => tm.id === vac.memberId);
+        if (m){
+          cls += ' vacation';
+          style = `--colab-color:${m.color};--colab-text:${contrastColor(m.color)}`;
+        }
+      }
+      daysHtml += `<div class="${cls}" style="${style}" onclick="handleVacationClick(${year},${idx},${d})">${d}</div>`;
+    }
+    html += `<div class="calendar-month">
+      <div class="calendar-month-title">${monthNames[idx]} ${year}</div>
+      <div class="calendar-days">${daysHtml}</div>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+function changeVacYear(delta){
+  state.currentVacYear += delta;
+  renderVacation();
+}
+
+function handleVacationClick(year, month, day){
+  if (!state.selectedMember){
+    showNotification('👆 ' + t('selectMemberFirst'), 'info');
+    return;
+  }
+  const idx = state.vacations.findIndex(v =>
+    v.year === year && v.month === month && v.day === day &&
+    v.memberId === state.selectedMember
+  );
+  if (idx === -1) state.vacations.push({ memberId:state.selectedMember, year, month, day });
+  else state.vacations.splice(idx, 1);
+  renderVacation();
+}
+
+function addTeamMember(){
+  const name = document.getElementById('newMemberName').value.trim();
+  const color = document.getElementById('newMemberColor').value;
+  if (!name){ alert('Preencha o nome.'); return; }
+  const newId = state.team.length > 0 ? Math.max(...state.team.map(t => t.id)) + 1 : 1;
+  state.team.push({ id:newId, name, color });
+  document.getElementById('newMemberName').value = '';
+  closeModal('modalAddMember');
+  renderTeamLegend(); renderVacation();
+  showNotification('👤 ' + t('memberAdded') + ': ' + name, 'success');
+}
+
+/* ============================================================
+ *  MODAIS
+ * ============================================================ */
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', function(e){
+    if (e.target === this) closeModal(this.id);
+  });
+});
+
+function saveAll(){
+  // Guardar em localStorage
+  try {
+    localStorage.setItem('crm.demo', JSON.stringify({
+      clients:state.clients, archived:state.archived, team:state.team,
+      vacations:state.vacations, notes:state.notes, language:state.language
+    }));
+  } catch(e){}
+  showNotification('💾 ' + t('allSaved'), 'success');
+}
+
+/* ============================================================
+ *  INICIALIZAÇÃO
+ * ============================================================ */
+function initApp(){
+  state.lists = JSON.parse(JSON.stringify(DEFAULT_LISTS));
+
+  // Tentar carregar do localStorage
+  try {
+    const raw = localStorage.getItem('crm.demo');
+    if (raw){
+      const data = JSON.parse(raw);
+      state.clients = data.clients || [];
+      state.archived = data.archived || [];
+      state.team = data.team || [];
+      state.vacations = data.vacations || [];
+      state.notes = data.notes || [];
+      state.language = data.language || 'pt';
+    } else {
+      const demo = createDemoData();
+      state.clients = demo.clients;
+      state.team = demo.team;
+      state.vacations = demo.vacations;
+      state.notes = demo.notes;
+    }
+  } catch(e){
+    const demo = createDemoData();
+    state.clients = demo.clients;
+    state.team = demo.team;
+    state.vacations = demo.vacations;
+    state.notes = demo.notes;
+  }
+
+  document.getElementById('languageSelect').value = state.language;
+  applyTranslations();
+  renderClients();
+  renderDashboard();
+  renderArchived();
+  renderCalendar();
+  renderTeamLegend();
+  renderVacation();
+}
+
+window.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>

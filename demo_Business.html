@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo · Painel de Viabilidade</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink-900:#0f172a;--ink-700:#334155;--ink-500:#64748b;--ink-400:#94a3b8;
+  --ink-200:#e2e8f0;--ink-100:#f1f5f9;--ink-50:#f8fafc;
+  --accent:#f59e0b;--accent-dark:#d97706;
+  --success:#10b981;--danger:#ef4444;--info:#3b82f6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f5f7fb;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color:var(--ink-900);font-size:14px;line-height:1.5;padding-bottom:2rem}
+
+.topbar{background:var(--ink-900);padding:1rem 2rem;display:flex;align-items:center;
+  justify-content:space-between;flex-wrap:wrap;gap:1rem;position:sticky;top:0;z-index:100}
+.brand{color:#fff;display:flex;flex-direction:column}
+.brand-name{font-size:1rem;font-weight:700}
+.brand-sub{font-size:.7rem;color:var(--ink-400);text-transform:uppercase;letter-spacing:.05em}
+.actions{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.actions select{font-family:inherit;font-size:.82rem;font-weight:600;padding:.5rem .8rem;
+  border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.08);
+  color:#fff;cursor:pointer}
+.actions select option{background:var(--ink-900)}
+
+.container{max-width:1400px;margin:1.5rem auto;background:#fff;padding:2rem;
+  border-radius:18px;box-shadow:0 1px 3px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.04)}
+
+.grid{display:grid;grid-template-columns:1fr;gap:2rem}
+@media(min-width:1024px){.grid{grid-template-columns:1.15fr .85fr}}
+
+.section{background:var(--ink-50);border:1px solid var(--ink-200);padding:1.2rem 1.4rem;
+  border-radius:14px;margin-bottom:1rem;border-left:4px solid var(--accent)}
+.section[data-c="primary"]{border-left-color:var(--info)}
+.section[data-c="purple"]{border-left-color:#8b5cf6;background:#faf5ff}
+.section[data-c="cyan"]{border-left-color:#06b6d4;background:#ecfeff}
+.section[data-c="success"]{border-left-color:var(--success);background:#f0fdf4}
+.section[data-c="warning"]{border-left-color:var(--accent);background:#fffbeb}
+.section h3{font-size:.8rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--ink-700);margin-bottom:.9rem}
+
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.9rem}
+.form-group{display:flex;flex-direction:column}
+.form-group label{font-weight:600;margin-bottom:.35rem;font-size:.68rem;
+  color:var(--ink-500);text-transform:uppercase;letter-spacing:.04em}
+.form-group input,.form-group select{padding:.55rem .75rem;border:1px solid var(--ink-200);
+  border-radius:8px;font-size:.85rem;font-family:inherit;font-weight:500;background:#fff;
+  font-variant-numeric:tabular-nums}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+
+.report-col{position:sticky;top:90px;height:fit-content}
+.report-col h2{font-size:1.05rem;font-weight:700;margin-bottom:1rem}
+.company-field{background:var(--ink-50);border:1px solid var(--ink-200);border-radius:14px;
+  padding:.85rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;
+  justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+.company-field label{font-size:.7rem;font-weight:700;color:var(--ink-500);
+  text-transform:uppercase;letter-spacing:.05em}
+.company-field input{flex:1;min-width:180px;font-family:inherit;font-size:.9rem;
+  font-weight:600;padding:.5rem .85rem;border:1px solid var(--ink-200);border-radius:10px}
+
+.veredicto{padding:1rem 1.4rem;border-radius:14px;font-weight:700;text-align:center;
+  margin-bottom:1rem;font-size:1rem;letter-spacing:.04em}
+.viavel{background:#e8f5e9;color:#0a5e2a;border:1px solid #86efac;
+  border-left:5px solid var(--success)}
+.inviavel{background:#ffebee;color:#a12b2b;border:1px solid #fca5a5;
+  border-left:5px solid var(--danger)}
+
+.analise{background:var(--ink-50);padding:1rem 1.2rem;border-radius:12px;
+  margin-bottom:1rem;font-size:.85rem;border-left:4px solid var(--info);
+  line-height:1.55;color:var(--ink-700)}
+.analise ul{margin:.5rem 0 0 1.2rem}
+.analise li{margin-bottom:.4rem}
+
+.chart-container{display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1.2rem}
+@media(min-width:640px){.chart-container{grid-template-columns:1fr 1fr}}
+.chart-card{background:#fff;border:1px solid var(--ink-200);border-radius:14px;
+  padding:.9rem;min-height:260px;max-height:320px;display:flex;flex-direction:column;overflow:hidden}
+.chart-card h4{margin:0 0 .6rem 0;font-size:.7rem;color:var(--ink-500);
+  text-transform:uppercase;letter-spacing:.04em;font-weight:700;
+  border-bottom:1px solid var(--ink-100);padding-bottom:.4rem;flex-shrink:0}
+.chart-canvas-wrap{position:relative;flex:1;min-height:0}
+
+.result-box{padding:1.2rem 1.4rem;background:#fff;border:1px solid var(--ink-200);
+  border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:.8rem;
+  border-radius:10px;overflow:hidden;background:#fff}
+th,td{border:1px solid var(--ink-200);padding:.5rem .7rem;text-align:right;
+  font-variant-numeric:tabular-nums}
+th{background:var(--ink-100);text-align:left;color:var(--ink-700);font-weight:700;
+  font-size:.68rem;text-transform:uppercase;letter-spacing:.04em}
+td:first-child{text-align:left;font-weight:500}
+.subtotal{font-weight:700;background:var(--ink-100);border-top:2px solid var(--ink-400)}
+.pos{color:#0a5e2a;font-weight:700}
+.neg{color:#a12b2b;font-weight:700}
+.highlight td{background:#eaf7ee}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-name" id="brandName">Painel de Viabilidade</div>
+    <div class="brand-sub" id="brandSub">Plano de Negócios & Projeção Estratégica</div>
+  </div>
+  <div class="actions">
+    <select id="countrySelect" onchange="switchCountry(this.value)">
+      <option value="PT">🇵🇹 Portugal</option>
+      <option value="ES">🇪🇸 España</option>
+      <option value="FR">🇫🇷 France</option>
+      <option value="UK">🇬🇧 United Kingdom</option>
+      <option value="DE">🇩🇪 Deutschland</option>
+      <option value="US">🇺🇸 United States</option>
+    </select>
+    <select id="langSelect" onchange="switchLanguage(this.value)">
+      <option value="pt">🌐 Português</option>
+      <option value="en">🌐 English</option>
+      <option value="es">🌐 Español</option>
+      <option value="fr">🌐 Français</option>
+      <option value="de">🌐 Deutsch</option>
+    </select>
+  </div>
+</div>
+
+<div class="container">
+  <div class="grid">
+    <!-- COLUNA ESQUERDA -->
+    <div>
+      <div class="section" data-c="primary">
+        <h3 id="hdrSector">⚙️ Perfil Sectorial & Projeção de Vendas</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label id="lblSetor">Setor de Atividade</label>
+            <select id="setorAtividade" onchange="adaptarSetor()">
+              <option value="servicos" id="optServicos">Serviços / TVDE / Consultoria</option>
+              <option value="comercio" selected id="optComercio">Comércio / Retalho</option>
+              <option value="restauracao" id="optRestauracao">Restauração e Bebidas</option>
+              <option value="agricultura" id="optAgricultura">Agricultura / Pecuária</option>
+              <option value="clinica" id="optClinica">Clínica Dentária (Isento)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label id="lblFaturacao">Faturação Base Ano 1</label>
+            <input type="number" id="faturacaoAno1" value="120000" onchange="calc()">
+          </div>
+          <div class="form-group">
+            <label id="lblCrescimento">Crescimento Anual (%)</label>
+            <input type="number" id="txCrescimento" value="5" step="0.1" onchange="calc()">
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:10px">
+          <div class="form-group">
+            <label id="lblGastosOperacionais">Compras Mensais de Mercadorias</label>
+            <input type="number" id="gastosMensais" value="4500" onchange="calc()">
+          </div>
+          <div class="form-group">
+            <label id="lblQuebra">Taxa de Quebra (%)</label>
+            <input type="number" id="quebraPerc" value="2" step="0.1" onchange="calc()">
+          </div>
+        </div>
+      </div>
+
+      <div class="section" data-c="purple">
+        <h3 id="hdrTerritorio">📍 Território & Concorrência</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label id="lblDensidade">Densidade Local</label>
+            <select id="densidadeGeo" onchange="atualizarRegimeFiscal()">
+              <option value="alta" selected id="optDensAlta">Grande Centro Urbano</option>
+              <option value="baixa" id="optDensBaixa">Interior / Aldeia (Benefício)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label id="lblConcorrencia">Concorrência Local</label>
+            <select id="nivelConcorrencia" onchange="calc()">
+              <option value="livre" selected id="optConcLivre">Mercado Livre</option>
+              <option value="saturado" id="optConcSat">Mercado Saturado</option>
+              <option value="hiper" id="optConcHiper">Grande Player Próximo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" data-c="warning">
+        <h3 id="hdrFiscal">⚖️ Parâmetros Fiscais</h3>
+        <div class="form-grid">
+          <div class="form-group"><label id="lblIrcRed">IRC Reduzida (%)</label>
+            <input type="number" id="taxaIrcReduzida" value="17" step="0.01" onchange="calc()"></div>
+          <div class="form-group"><label id="lblTetoIrc">Teto IRC Reduzido</label>
+            <input type="number" id="tetoIrcReduzido" value="50000" onchange="calc()"></div>
+          <div class="form-group"><label id="lblIrcNormal">IRC Normal (%)</label>
+            <input type="number" id="taxaIrcNormal" value="21" step="0.01" onchange="calc()"></div>
+          <div class="form-group"><label id="lblDerrama">Derrama (%)</label>
+            <input type="number" id="taxaDerrama" value="1.5" step="0.01" onchange="calc()"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3 id="hdrFse">🏢 FSE Mensais</h3>
+        <div class="form-grid">
+          <div class="form-group"><label id="lblRenda">Rendas</label>
+            <input type="number" id="fseRenda" value="1000" onchange="calc()"></div>
+          <div class="form-group"><label id="lblEnergia">Energia/Água/Gás</label>
+            <input type="number" id="fseEnergia" value="300" onchange="calc()"></div>
+          <div class="form-group"><label id="lblCombustivel">Combustíveis</label>
+            <input type="number" id="fseCombustivel" value="200" onchange="calc()"></div>
+          <div class="form-group"><label id="lblToc">Contabilista</label>
+            <input type="number" id="fseTOC" value="160" onchange="calc()"></div>
+          <div class="form-group"><label id="lblMark">Marketing</label>
+            <input type="number" id="fseMark" value="150" onchange="calc()"></div>
+          <div class="form-group"><label id="lblSoft">Software</label>
+            <input type="number" id="fseSoft" value="100" onchange="calc()"></div>
+          <div class="form-group"><label id="lblOutros">Outros</label>
+            <input type="number" id="fseOutros" value="250" onchange="calc()"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3 id="hdrRh">👥 Recursos Humanos</h3>
+        <div class="form-grid">
+          <div class="form-group"><label id="lblNumTrab">Nº Trabalhadores</label>
+            <input type="number" id="numTrabalhadores" value="2" onchange="calc()"></div>
+          <div class="form-group"><label id="lblSalBruto">Salário Bruto Mensal</label>
+            <input type="number" id="salariosMensais" value="950" onchange="calc()"></div>
+          <div class="form-group"><label id="lblSubAlim">Subsídio Alimentação</label>
+            <input type="number" id="subAlim" value="6" step="0.1" onchange="calc()"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3 id="hdrCapitais">💰 Capitais e Prazos</h3>
+        <div class="form-grid">
+          <div class="form-group"><label id="lblCapProprio">Capital Próprio</label>
+            <input type="number" id="capProprio" value="30000" onchange="calc()"></div>
+          <div class="form-group"><label id="lblPrazoBanco">Prazo Empréstimo (Anos)</label>
+            <input type="number" id="prazoBanco" value="5" onchange="calc()"></div>
+          <div class="form-group"><label id="lblInjecao">Injeção Capital</label>
+            <input type="number" id="injecaoCapital" value="0" onchange="calc()"></div>
+          <div class="form-group"><label id="lblAnoInjecao">Ano de Entrada</label>
+            <select id="anoInjecao" onchange="calc()">
+              <option value="1" selected id="ano1a">Ano 1</option>
+              <option value="2" id="ano2a">Ano 2</option>
+              <option value="3" id="ano3a">Ano 3</option>
+            </select>
+          </div>
+          <div class="form-group"><label id="lblPmr">Recebimento Clientes</label>
+            <select id="pmr" onchange="calc()">
+              <option value="0" id="pmr0a">A Pronto</option>
+              <option value="30" selected id="pmr30a">30 dias</option>
+              <option value="60" id="pmr60a">60 dias</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3 id="hdrIva">📊 IVA</h3>
+        <div class="form-grid">
+          <div class="form-group"><label id="lblIvaVendas">IVA Vendas</label>
+            <select id="ivaVendas" onchange="calc()">
+              <option value="0.23" selected>23% Normal</option>
+              <option value="0.13">13% Intermédia</option>
+              <option value="0.06">6% Reduzida</option>
+              <option value="0.00">0% Isento</option>
+            </select>
+          </div>
+          <div class="form-group"><label id="lblIvaCompras">IVA Compras</label>
+            <select id="ivaCompras" onchange="calc()">
+              <option value="0.23" selected>23% Dedutível</option>
+              <option value="0.13">13% Dedutível</option>
+              <option value="0.06">6% Dedutível</option>
+              <option value="0.00">0% Custo Total</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUNA DIREITA -->
+    <div class="report-col">
+      <h2 id="hdrRelatorio">📊 Relatório Técnico</h2>
+      <div class="company-field">
+        <label>🏢 <span id="lblEmpresaCliente">Empresa / Cliente</span></label>
+        <input type="text" id="nomeEmpresa" placeholder="Ex: Acme Lda.">
+      </div>
+      <div id="veredictoBox" class="veredicto viavel">✓ <span id="lblVeredicto">PLANO VIÁVEL</span></div>
+      <div class="analise" id="analise">
+        <p><strong id="lblParecer">Parecer Final:</strong> <span id="lblParecerTexto">Plano sustentável.</span></p>
+      </div>
+      <div class="chart-container">
+        <div class="chart-card"><h4 id="hdrChart1">Faturação vs Lucro</h4>
+          <div class="chart-canvas-wrap"><canvas id="chartEvolucao"></canvas></div></div>
+        <div class="chart-card"><h4 id="hdrChart2">Estrutura de Custos (Ano 1)</h4>
+          <div class="chart-canvas-wrap"><canvas id="chartCustos"></canvas></div></div>
+      </div>
+      <div class="result-box">
+        <p><strong id="lblTotalAmort">Total Amortizações:</strong>
+          <span id="totalAmortizacoes" class="pos">0,00 €</span></p>
+        <table id="tabelaPlurianual">
+          <thead><tr>
+            <th id="thLinha">Linha</th><th id="thAno1">Ano 1</th>
+            <th id="thAno2">Ano 2</th><th id="thAno3">Ano 3</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+ *  PAÍSES
+ * ============================================================ */
+const COUNTRIES = {
+  PT:{name:"Portugal",flag:"🇵🇹",currency:{code:"EUR",symbol:"€",locale:"pt-PT"},
+    taxes:{ircReduzida:17,tetoIrcReduzido:50000,ircNormal:21,derrama:1.5,
+           ivaVendas:0.23,ivaCompras:0.23,taxaSsb:23.75,diasSubAlim:11,diasUteis:22},
+    fse:{renda:1000,energia:300,combustivel:200,toc:160,mark:150,soft:100,outros:250},
+    sal:{num:2,bruto:950,sub:6}},
+  ES:{name:"España",flag:"🇪🇸",currency:{code:"EUR",symbol:"€",locale:"es-ES"},
+    taxes:{ircReduzida:23,tetoIrcReduzido:50000,ircNormal:25,derrama:0,
+           ivaVendas:0.21,ivaCompras:0.21,taxaSsb:30,diasSubAlim:11,diasUteis:22},
+    fse:{renda:1000,energia:300,combustivel:200,toc:160,mark:150,soft:100,outros:250},
+    sal:{num:2,bruto:1200,sub:6}},
+  FR:{name:"France",flag:"🇫🇷",currency:{code:"EUR",symbol:"€",locale:"fr-FR"},
+    taxes:{ircReduzida:15,tetoIrcReduzido:42500,ircNormal:25,derrama:0,
+           ivaVendas:0.20,ivaCompras:0.20,taxaSsb:45,diasSubAlim:11,diasUteis:22},
+    fse:{renda:1200,energia:350,combustivel:250,toc:200,mark:180,soft:120,outros:280},
+    sal:{num:2,bruto:1600,sub:7}},
+  UK:{name:"United Kingdom",flag:"🇬🇧",currency:{code:"GBP",symbol:"£",locale:"en-GB"},
+    taxes:{ircReduzida:19,tetoIrcReduzido:50000,ircNormal:25,derrama:0,
+           ivaVendas:0.20,ivaCompras:0.20,taxaSsb:13.8,diasSubAlim:11,diasUteis:22},
+    fse:{renda:1200,energia:300,combustivel:250,toc:200,mark:200,soft:120,outros:300},
+    sal:{num:2,bruto:1800,sub:8}},
+  DE:{name:"Deutschland",flag:"🇩🇪",currency:{code:"EUR",symbol:"€",locale:"de-DE"},
+    taxes:{ircReduzida:15,tetoIrcReduzido:0,ircNormal:15,derrama:14,
+           ivaVendas:0.19,ivaCompras:0.19,taxaSsb:40,diasSubAlim:11,diasUteis:22},
+    fse:{renda:1100,energia:350,combustivel:250,toc:180,mark:180,soft:120,outros:280},
+    sal:{num:2,bruto:1900,sub:8}},
+  US:{name:"United States",flag:"🇺🇸",currency:{code:"USD",symbol:"$",locale:"en-US"},
+    taxes:{ircReduzida:15,tetoIrcReduzido:50000,ircNormal:21,derrama:5,
+           ivaVendas:0.08,ivaCompras:0.08,taxaSsb:15.3,diasSubAlim:11,diasUteis:22},
+    fse:{renda:1500,energia:400,combustivel:300,toc:250,mark:250,soft:150,outros:350},
+    sal:{num:2,bruto:2000,sub:10}}
+};
+
+/* ============================================================
+ *  TRADUÇÕES (abreviadas para a demo)
+ * ============================================================ */
+const T = {
+  pt:{brandName:"Painel de Viabilidade",brandSub:"Plano de Negócios & Projeção Estratégica",
+    hdrSector:"⚙️ Perfil Sectorial & Projeção de Vendas",lblSetor:"Setor de Atividade",
+    optServicos:"Serviços / TVDE / Consultoria",optComercio:"Comércio / Retalho",
+    optRestauracao:"Restauração e Bebidas",optAgricultura:"Agricultura / Pecuária",
+    optClinica:"Clínica Dentária (Isento)",
+    lblFaturacao:"Faturação Base Ano 1",lblCrescimento:"Crescimento Anual (%)",
+    lblGastosOperacionais:"Compras Mensais de Mercadorias",lblQuebra:"Taxa de Quebra (%)",
+    hdrTerritorio:"📍 Território & Concorrência",lblDensidade:"Densidade Local",
+    optDensAlta:"Grande Centro Urbano",optDensBaixa:"Interior / Aldeia (Benefício)",
+    lblConcorrencia:"Concorrência Local",optConcLivre:"Mercado Livre",
+    optConcSat:"Mercado Saturado",optConcHiper:"Grande Player Próximo",
+    hdrFiscal:"⚖️ Parâmetros Fiscais",lblIrcRed:"IRC Reduzida (%)",
+    lblTetoIrc:"Teto IRC Reduzido",lblIrcNormal:"IRC Normal (%)",lblDerrama:"Derrama (%)",
+    hdrFse:"🏢 FSE Mensais",lblRenda:"Rendas",lblEnergia:"Energia/Água/Gás",
+    lblCombustivel:"Combustíveis",lblToc:"Contabilista",lblMark:"Marketing",
+    lblSoft:"Software",lblOutros:"Outros",
+    hdrRh:"👥 Recursos Humanos",lblNumTrab:"Nº Trabalhadores",
+    lblSalBruto:"Salário Bruto Mensal",lblSubAlim:"Subsídio Alimentação",
+    hdrCapitais:"💰 Capitais e Prazos",lblCapProprio:"Capital Próprio",
+    lblPrazoBanco:"Prazo Empréstimo (Anos)",lblInjecao:"Injeção Capital",
+    lblAnoInjecao:"Ano de Entrada",ano1a:"Ano 1",ano2a:"Ano 2",ano3a:"Ano 3",
+    lblPmr:"Recebimento Clientes",pmr0a:"A Pronto",pmr30a:"30 dias",pmr60a:"60 dias",
+    hdrIva:"📊 IVA",lblIvaVendas:"IVA Vendas",lblIvaCompras:"IVA Compras",
+    hdrRelatorio:"📊 Relatório Técnico",lblEmpresaCliente:"Empresa / Cliente",
+    lblVeredicto:"PLANO VIÁVEL",lblVeredictoNeg:"PLANO INVIÁVEL",
+    lblParecer:"Parecer Final:",lblParecerOk:"Plano financeiramente sustentável.",
+    lblParecerNeg:"Riscos Detetados:",hdrChart1:"Faturação vs Lucro",
+    hdrChart2:"Estrutura de Custos (Ano 1)",lblTotalAmort:"Total Amortizações:",
+    thLinha:"Linha",thAno1:"Ano 1",thAno2:"Ano 2",thAno3:"Ano 3",
+    rowVolume:"Volume de Negócios",rowCmv:"(-) CMVMC",rowFse:"(-) FSE",
+    rowPessoal:"(-) Pessoal",rowDep:"(-) Depreciações",rowJuros:"(-) Juros",
+    rowImpostos:"(-) Impostos",rowResultado:"(=) RESULTADO LÍQUIDO",
+    rowInjecao:"(+) Injeção Capital",rowCaixa:"CAIXA ACUMULADA",
+    alertInsolv:"❌ Insolvência: caixa negativo até Ano 3.",
+    alertPrejuizo:"❌ Prejuízo Operacional Crítico.",
+    alertConcSat:"⚠️ Mercado Saturado: -30% vendas.",
+    alertConcHiper:"⚠️ Grande Player: teto e crescimento penalizados.",
+    alertSetorTerritorio:"❌ Setor/Território incompatível.",
+    placeholderCompany:"Ex: Acme Lda."},
+
+  en:{brandName:"Viability Panel",brandSub:"Business Plan & Strategic Projection",
+    hdrSector:"⚙️ Sector Profile & Sales Projection",lblSetor:"Business Sector",
+    optServicos:"Services / Ride-hailing / Consulting",optComercio:"Retail / Shop",
+    optRestauracao:"Restaurant & Beverages",optAgricultura:"Agriculture / Livestock",
+    optClinica:"Dental Clinic (VAT exempt)",
+    lblFaturacao:"Base Revenue Year 1",lblCrescimento:"Annual Growth (%)",
+    lblGastosOperacionais:"Monthly Goods Purchases",lblQuebra:"Waste Rate (%)",
+    hdrTerritorio:"📍 Territory & Competition",lblDensidade:"Local Density",
+    optDensAlta:"Large Urban Center",optDensBaixa:"Rural / Interior (Tax Benefit)",
+    lblConcorrencia:"Local Competition",optConcLivre:"Open Market",
+    optConcSat:"Saturated Market",optConcHiper:"Major Player Nearby",
+    hdrFiscal:"⚖️ Tax Parameters",lblIrcRed:"Reduced Corporate Tax (%)",
+    lblTetoIrc:"Reduced Rate Cap",lblIrcNormal:"Standard Corporate Tax (%)",lblDerrama:"Local Surcharge (%)",
+    hdrFse:"🏢 External Supplies & Services (Monthly)",lblRenda:"Rent / Leases",
+    lblEnergia:"Energy, Water & Gas",lblCombustivel:"Fuel / Transportation",
+    lblToc:"Certified Accountant",lblMark:"Marketing",lblSoft:"Software",
+    lblOutros:"Other Costs",
+    hdrRh:"👥 Human Resources",lblNumTrab:"Number of Employees",
+    lblSalBruto:"Gross Monthly Salary",lblSubAlim:"Daily Meal Allowance",
+    hdrCapitais:"💰 Capital & Terms",lblCapProprio:"Initial Equity",
+    lblPrazoBanco:"Loan Term (Years)",lblInjecao:"Capital Injection",
+    lblAnoInjecao:"Capital Entry Year",ano1a:"Year 1",ano2a:"Year 2",ano3a:"Year 3",
+    lblPmr:"Receivables Term",pmr0a:"Cash / POS",pmr30a:"30 days",pmr60a:"60 days",
+    hdrIva:"📊 VAT",lblIvaVendas:"VAT on Sales",lblIvaCompras:"VAT on Purchases",
+    hdrRelatorio:"📊 Technical Report",lblEmpresaCliente:"Company / Client",
+    lblVeredicto:"VIABLE PLAN",lblVeredictoNeg:"NOT VIABLE",
+    lblParecer:"Final Opinion:",lblParecerOk:"Financially sustainable plan.",
+    lblParecerNeg:"Risks Detected:",hdrChart1:"Revenue vs Net Profit",
+    hdrChart2:"Cost Structure (Year 1)",lblTotalAmort:"Total Depreciation:",
+    thLinha:"Line",thAno1:"Year 1",thAno2:"Year 2",thAno3:"Year 3",
+    rowVolume:"Revenue",rowCmv:"(-) COGS",rowFse:"(-) External Services",
+    rowPessoal:"(-) Personnel",rowDep:"(-) Depreciation",rowJuros:"(-) Interest",
+    rowImpostos:"(-) Taxes",rowResultado:"(=) NET INCOME",
+    rowInjecao:"(+) Capital Injection",rowCaixa:"CASH ACCUMULATED",
+    alertInsolv:"❌ Treasury Insolvency by Year 3.",
+    alertPrejuizo:"❌ Critical Operating Loss.",
+    alertConcSat:"⚠️ Saturated Market: -30% sales.",
+    alertConcHiper:"⚠️ Major Nearby Player: growth penalties.",
+    alertSetorTerritorio:"❌ Sector/Territory Mismatch.",
+    placeholderCompany:"E.g. Acme Ltd."},
+
+  es:{brandName:"Panel de Viabilidad",brandSub:"Plan de Negocio y Proyección Estratégica",
+    hdrSector:"⚙️ Perfil Sectorial y Proyección de Ventas",lblSetor:"Sector de Actividad",
+    optServicos:"Servicios / VTC / Consultoría",optComercio:"Comercio / Minorista",
+    optRestauracao:"Restauración y Bebidas",optAgricultura:"Agricultura / Ganadería",
+    optClinica:"Clínica Dental (Exento)",
+    lblFaturacao:"Facturación Base Año 1",lblCrescimento:"Crecimiento Anual (%)",
+    lblGastosOperacionais:"Compras Mensuales",lblQuebra:"Tasa de Merma (%)",
+    hdrTerritorio:"📍 Territorio y Competencia",lblDensidade:"Densidad Local",
+    optDensAlta:"Gran Centro Urbano",optDensBaixa:"Interior / Rural (Beneficio)",
+    lblConcorrencia:"Competencia Local",optConcLivre:"Mercado Libre",
+    optConcSat:"Mercado Saturado",optConcHiper:"Gran Jugador Cercano",
+    hdrFiscal:"⚖️ Parámetros Fiscales",lblIrcRed:"Impuesto Sociedades Reducido (%)",
+    lblTetoIrc:"Techo del Tipo Reducido",lblIrcNormal:"Impuesto Sociedades Normal (%)",
+    lblDerrama:"Recargo Local (%)",
+    hdrFse:"🏢 Suministros y Servicios Externos (Mensual)",lblRenda:"Alquileres",
+    lblEnergia:"Energía, Agua y Gas",lblCombustivel:"Combustibles",
+    lblToc:"Contable",lblMark:"Marketing",lblSoft:"Software",lblOutros:"Otros Costes",
+    hdrRh:"👥 Recursos Humanos",lblNumTrab:"Nº Trabajadores",
+    lblSalBruto:"Salario Bruto Mensual",lblSubAlim:"Subsidio de Comida",
+    hdrCapitais:"💰 Capital y Plazos",lblCapProprio:"Capital Propio",
+    lblPrazoBanco:"Plazo Préstamo (Años)",lblInjecao:"Inyección de Capital",
+    lblAnoInjecao:"Año de Entrada",ano1a:"Año 1",ano2a:"Año 2",ano3a:"Año 3",
+    lblPmr:"Plazo de Cobro",pmr0a:"Al Contado",pmr30a:"30 días",pmr60a:"60 días",
+    hdrIva:"📊 IVA",lblIvaVendas:"IVA Ventas",lblIvaCompras:"IVA Compras",
+    hdrRelatorio:"📊 Informe Técnico",lblEmpresaCliente:"Empresa / Cliente",
+    lblVeredicto:"PLAN VIABLE",lblVeredictoNeg:"PLAN NO VIABLE",
+    lblParecer:"Opinión Final:",lblParecerOk:"Plan financieramente sostenible.",
+    lblParecerNeg:"Riesgos Detectados:",hdrChart1:"Ventas vs Beneficio",
+    hdrChart2:"Estructura de Costes (Año 1)",lblTotalAmort:"Amortización Total:",
+    thLinha:"Línea",thAno1:"Año 1",thAno2:"Año 2",thAno3:"Año 3",
+    rowVolume:"Volumen de Negocio",rowCmv:"(-) Coste Mercancías",rowFse:"(-) Suministros",
+    rowPessoal:"(-) Personal",rowDep:"(-) Amortizaciones",rowJuros:"(-) Gastos Financieros",
+    rowImpostos:"(-) Impuestos",rowResultado:"(=) RESULTADO NETO",
+    rowInjecao:"(+) Inyección Capital",rowCaixa:"DISPONIBILIDADES",
+    alertInsolv:"❌ Insolvencia de Tesorería hasta Año 3.",
+    alertPrejuizo:"❌ Pérdida Operativa Crítica.",
+    alertConcSat:"⚠️ Mercado Saturado: -30% ventas.",
+    alertConcHiper:"⚠️ Gran Jugador Cercano.",
+    alertSetorTerritorio:"❌ Incompatibilidad Sector/Territorio.",
+    placeholderCompany:"Ej: Acme S.L."},
+
+  fr:{brandName:"Panneau de Viabilité",brandSub:"Business Plan & Projection Stratégique",
+    hdrSector:"⚙️ Profil Sectoriel & Projection des Ventes",lblSetor:"Secteur d'Activité",
+    optServicos:"Services / VTC / Conseil",optComercio:"Commerce / Détail",
+    optRestauracao:"Restauration et Boissons",optAgricultura:"Agriculture / Élevage",
+    optClinica:"Clinique Dentaire (Exonéré)",
+    lblFaturacao:"Chiffre d'Affaires Base An 1",lblCrescimento:"Croissance Annuelle (%)",
+    lblGastosOperacionais:"Achats Mensuels",lblQuebra:"Taux de Perte (%)",
+    hdrTerritorio:"📍 Territoire & Concurrence",lblDensidade:"Densité Locale",
+    optDensAlta:"Grand Centre Urbain",optDensBaixa:"Intérieur / Rural (Avantage)",
+    lblConcorrencia:"Concurrence Locale",optConcLivre:"Marché Libre",
+    optConcSat:"Marché Saturé",optConcHiper:"Grand Acteur Proche",
+    hdrFiscal:"⚖️ Paramètres Fiscaux",lblIrcRed:"Impôt Sociétés Réduit (%)",
+    lblTetoIrc:"Plafond du Taux Réduit",lblIrcNormal:"Impôt Sociétés Normal (%)",
+    lblDerrama:"Contribution Locale (%)",
+    hdrFse:"🏢 Fournitures et Services Externes (Mensuel)",lblRenda:"Loyers",
+    lblEnergia:"Énergie, Eau et Gaz",lblCombustivel:"Carburants",
+    lblToc:"Expert-Comptable",lblMark:"Marketing",lblSoft:"Logiciels",
+    lblOutros:"Autres Coûts",
+    hdrRh:"👥 Ressources Humaines",lblNumTrab:"Nombre d'Employés",
+    lblSalBruto:"Salaire Brut Mensuel",lblSubAlim:"Indemnité Repas",
+    hdrCapitais:"💰 Capital & Délais",lblCapProprio:"Capital Propre",
+    lblPrazoBanco:"Durée du Prêt (Ans)",lblInjecao:"Injection de Capital",
+    lblAnoInjecao:"Année d'Entrée",ano1a:"An 1",ano2a:"An 2",ano3a:"An 3",
+    lblPmr:"Délai de Règlement",pmr0a:"Comptant",pmr30a:"30 jours",pmr60a:"60 jours",
+    hdrIva:"📊 TVA",lblIvaVendas:"TVA sur Ventes",lblIvaCompras:"TVA sur Achats",
+    hdrRelatorio:"📊 Rapport Technique",lblEmpresaCliente:"Entreprise / Client",
+    lblVeredicto:"PLAN VIABLE",lblVeredictoNeg:"PLAN NON VIABLE",
+    lblParecer:"Avis Final:",lblParecerOk:"Plan financièrement durable.",
+    lblParecerNeg:"Risques Détectés:",hdrChart1:"CA vs Bénéfice Net",
+    hdrChart2:"Répartition des Coûts (An 1)",lblTotalAmort:"Amortissements:",
+    thLinha:"Ligne",thAno1:"An 1",thAno2:"An 2",thAno3:"An 3",
+    rowVolume:"Chiffre d'Affaires",rowCmv:"(-) Coût Marchandises",
+    rowFse:"(-) Fournitures",rowPessoal:"(-) Personnel",rowDep:"(-) Amortissements",
+    rowJuros:"(-) Charges Financières",rowImpostos:"(-) Impôts",
+    rowResultado:"(=) RÉSULTAT NET",rowInjecao:"(+) Injection Capital",
+    rowCaixa:"TRÉSORERIE CUMULÉE",
+    alertInsolv:"❌ Insolvabilité de Trésorerie en An 3.",
+    alertPrejuizo:"❌ Perte Opérationnelle Critique.",
+    alertConcSat:"⚠️ Marché Saturé: -30% ventes.",
+    alertConcHiper:"⚠️ Grand Acteur Proche.",
+    alertSetorTerritorio:"❌ Incompatibilité Secteur/Territoire.",
+    placeholderCompany:"Ex: Acme SARL"},
+
+  de:{brandName:"Machbarkeits-Panel",brandSub:"Businessplan & Strategische Prognose",
+    hdrSector:"⚙️ Branchenprofil & Umsatzprognose",lblSetor:"Wirtschaftszweig",
+    optServicos:"Dienstleistungen / Fahrdienst",optComercio:"Einzelhandel",
+    optRestauracao:"Gastronomie",optAgricultura:"Landwirtschaft",
+    optClinica:"Zahnklinik (MwSt-befreit)",
+    lblFaturacao:"Basisumsatz Jahr 1",lblCrescimento:"Jährliches Wachstum (%)",
+    lblGastosOperacionais:"Monatliche Wareneinkäufe",lblQuebra:"Schwundrate (%)",
+    hdrTerritorio:"📍 Gebiet & Wettbewerb",lblDensidade:"Lokale Dichte",
+    optDensAlta:"Großes Stadtzentrum",optDensBaixa:"Ländlich (Steuervorteil)",
+    lblConcorrencia:"Wettbewerb",optConcLivre:"Freier Markt",
+    optConcSat:"Gesättigter Markt",optConcHiper:"Großer Akteur in der Nähe",
+    hdrFiscal:"⚖️ Steuerparameter",lblIrcRed:"Reduzierte KSt (%)",
+    lblTetoIrc:"Obergrenze",lblIrcNormal:"Normale KSt (%)",lblDerrama:"Kommunalabgabe (%)",
+    hdrFse:"🏢 Externe Lieferungen (Monatlich)",lblRenda:"Mieten",
+    lblEnergia:"Energie, Wasser & Gas",lblCombustivel:"Kraftstoff",
+    lblToc:"Buchhalter",lblMark:"Marketing",lblSoft:"Software",
+    lblOutros:"Sonstige Kosten",
+    hdrRh:"👥 Personalstruktur",lblNumTrab:"Mitarbeiterzahl",
+    lblSalBruto:"Bruttomonatsgehalt",lblSubAlim:"Verpflegungsgeld",
+    hdrCapitais:"💰 Kapital & Fristen",lblCapProprio:"Eigenkapital",
+    lblPrazoBanco:"Laufzeit (Jahre)",lblInjecao:"Kapitaleinschuss",
+    lblAnoInjecao:"Eintrittsjahr",ano1a:"Jahr 1",ano2a:"Jahr 2",ano3a:"Jahr 3",
+    lblPmr:"Zahlungsziel",pmr0a:"Sofort",pmr30a:"30 Tage",pmr60a:"60 Tage",
+    hdrIva:"📊 MwSt",lblIvaVendas:"MwSt Verkäufe",lblIvaCompras:"MwSt Einkäufe",
+    hdrRelatorio:"📊 Technischer Bericht",lblEmpresaCliente:"Firma / Kunde",
+    lblVeredicto:"TRAGFÄHIGER PLAN",lblVeredictoNeg:"NICHT TRAGFÄHIG",
+    lblParecer:"Endgutachten:",lblParecerOk:"Finanziell nachhaltiger Plan.",
+    lblParecerNeg:"Erkannte Risiken:",hdrChart1:"Umsatz vs Nettogewinn",
+    hdrChart2:"Kostenverteilung (Jahr 1)",lblTotalAmort:"Abschreibungen:",
+    thLinha:"Position",thAno1:"Jahr 1",thAno2:"Jahr 2",thAno3:"Jahr 3",
+    rowVolume:"Umsatzerlöse",rowCmv:"(-) Wareneinsatz",rowFse:"(-) Externe Leistungen",
+    rowPessoal:"(-) Personal",rowDep:"(-) Abschreibungen",rowJuros:"(-) Zinsen",
+    rowImpostos:"(-) Steuern",rowResultado:"(=) NETTOERGEBNIS",
+    rowInjecao:"(+) Kapitaleinschuss",rowCaixa:"VERFÜGBARE MITTEL",
+    alertInsolv:"❌ Zahlungsunfähigkeit bis Jahr 3.",
+    alertPrejuizo:"❌ Kritischer operativer Verlust.",
+    alertConcSat:"⚠️ Gesättigter Markt: -30%.",
+    alertConcHiper:"⚠️ Großer Akteur in der Nähe.",
+    alertSetorTerritorio:"❌ Branche/Gebiet-Unvereinbarkeit.",
+    placeholderCompany:"z.B. Acme GmbH"}
+};
+
+/* ============================================================
+ *  ESTADO
+ * ============================================================ */
+const state = { country:"PT", language:"pt" };
+let chartEvolucao=null, chartCustos=null;
+
+function t(k){ return (T[state.language] && T[state.language][k]) || k; }
+function getCountry(){ return COUNTRIES[state.country]; }
+function getCurrency(){ return getCountry().currency; }
+function fmt(v){
+  const c=getCurrency();
+  try{ return new Intl.NumberFormat(c.locale,{style:'currency',currency:c.code,
+    minimumFractionDigits:2,maximumFractionDigits:2}).format(v); }
+  catch(e){ return v.toFixed(2)+' '+c.symbol; }
+}
+function fmtInt(v){ return Math.round(v).toLocaleString(getCurrency().locale); }
+
+/* ============================================================
+ *  APLICAR TRADUÇÕES
+ * ============================================================ */
+function applyTranslations(){
+  const keys=["brandName","brandSub","hdrSector","lblSetor","optServicos","optComercio",
+    "optRestauracao","optAgricultura","optClinica","lblFaturacao","lblCrescimento",
+    "lblGastosOperacionais","lblQuebra","hdrTerritorio","lblDensidade","optDensAlta",
+    "optDensBaixa","lblConcorrencia","optConcLivre","optConcSat","optConcHiper",
+    "hdrFiscal","lblIrcRed","lblTetoIrc","lblIrcNormal","lblDerrama","hdrFse",
+    "lblRenda","lblEnergia","lblCombustivel","lblToc","lblMark","lblSoft","lblOutros",
+    "hdrRh","lblNumTrab","lblSalBruto","lblSubAlim","hdrCapitais","lblCapProprio",
+    "lblPrazoBanco","lblInjecao","lblAnoInjecao","ano1a","ano2a","ano3a","lblPmr",
+    "pmr0a","pmr30a","pmr60a","hdrIva","lblIvaVendas","lblIvaCompras","hdrRelatorio",
+    "lblEmpresaCliente","lblVeredicto","lblVeredictoNeg","lblParecer","lblParecerOk",
+    "lblParecerNeg","hdrChart1","hdrChart2","lblTotalAmort","thLinha","thAno1",
+    "thAno2","thAno3","rowVolume","rowCmv","rowFse","rowPessoal","rowDep","rowJuros",
+    "rowImpostos","rowResultado","rowInjecao","rowCaixa","alertInsolv","alertPrejuizo",
+    "alertConcSat","alertConcHiper","alertSetorTerritorio"];
+  keys.forEach(k=>{
+    const el=document.getElementById(k);
+    if(el) el.textContent=t(k);
+  });
+  const emp=document.getElementById('nomeEmpresa');
+  if(emp) emp.placeholder=t('placeholderCompany');
+  // Atualizar label gastos operacionais
+  const setor=document.getElementById('setorAtividade').value;
+  const map={servicos:'Compras Mensais de Matérias-Primas',comercio:'Compras Mensais de Mercadorias',
+    restauracao:'Compras Mensais de Matérias-Primas',agricultura:'Insumos e Fertilizantes Mensais',
+    clinica:'Consumíveis Clínicos Mensais'};
+  document.getElementById('lblGastosOperacionais').textContent=map[setor]||'Compras Mensais';
+}
+
+/* ============================================================
+ *  ADAPTAÇÃO SETOR
+ * ============================================================ */
+function adaptarSetor(){
+  const s=document.getElementById('setorAtividade').value;
+  const iv=document.getElementById('ivaVendas'),ic=document.getElementById('ivaCompras');
+  const mapa={servicos:['0.23','0.23'],comercio:['0.23','0.23'],
+    restauracao:['0.13','0.23'],agricultura:['0.06','0.23'],clinica:['0.00','0.00']};
+  iv.value=mapa[s][0]; ic.value=mapa[s][1];
+  applyTranslations();
+  calc();
+}
+
+function atualizarRegimeFiscal(){
+  const d=document.getElementById('densidadeGeo').value;
+  const irc=document.getElementById('taxaIrcReduzida');
+  irc.value = d==='baixa' ? '12.50' : state.taxes.ircReduzida;
+  calc();
+}
+
+/* ============================================================
+ *  PAÍS / IDIOMA
+ * ============================================================ */
+function resetTaxes(){
+  state.taxes=JSON.parse(JSON.stringify(getCountry().taxes));
+  state.taxes.taxaSsb=state.taxes.taxaSsb||23.75;
+  state.taxes.diasSubAlim=state.taxes.diasSubAlim||11;
+  state.taxes.diasUteis=state.taxes.diasUteis||22;
+}
+
+function applyCountryDefaults(){
+  const c=getCountry();
+  document.getElementById('taxaIrcReduzida').value=state.taxes.ircReduzida;
+  document.getElementById('tetoIrcReduzido').value=state.taxes.tetoIrcReduzido;
+  document.getElementById('taxaIrcNormal').value=state.taxes.ircNormal;
+  document.getElementById('taxaDerrama').value=state.taxes.derrama;
+  document.getElementById('ivaVendas').value=state.taxes.ivaVendas;
+  document.getElementById('ivaCompras').value=state.taxes.ivaCompras;
+  ['renda','energia','combustivel','toc','mark','soft','outros'].forEach(k=>{
+    document.getElementById('fse'+k.charAt(0).toUpperCase()+k.slice(1)).value=c.fse[k];
+  });
+  document.getElementById('numTrabalhadores').value=c.sal.num;
+  document.getElementById('salariosMensais').value=c.sal.bruto;
+  document.getElementById('subAlim').value=c.sal.sub;
+}
+
+function switchCountry(code){
+  state.country=code;
+  resetTaxes();
+  applyCountryDefaults();
+  applyTranslations();
+  calc();
+}
+
+function switchLanguage(lang){
+  state.language=lang;
+  applyTranslations();
+  calc();
+}
+
+/* ============================================================
+ *  CÁLCULO PRINCIPAL
+ * ============================================================ */
+function calc(){
+  const setor=document.getElementById('setorAtividade').value;
+  let fat=parseFloat(document.getElementById('faturacaoAno1').value)||0;
+  let txCresc=(parseFloat(document.getElementById('txCrescimento').value)||0)/100;
+  const gastosM=parseFloat(document.getElementById('gastosMensais').value)||0;
+  const quebra=(parseFloat(document.getElementById('quebraPerc').value)||0)/100;
+  const injecao=parseFloat(document.getElementById('injecaoCapital').value)||0;
+  const anoInjecao=parseInt(document.getElementById('anoInjecao').value)||1;
+  const densidade=document.getElementById('densidadeGeo').value;
+  const conc=document.getElementById('nivelConcorrencia').value;
+  const pmr=parseInt(document.getElementById('pmr').value)||0;
+
+  // Penalizações
+  let pen=1.0, notas=[];
+  if(conc==='saturado'){ pen=0.70; txCresc*=0.5; notas.push(t('alertConcSat')); }
+  else if(conc==='hiper'){ pen=0.50; txCresc=0.01; notas.push(t('alertConcHiper')); }
+  if(setor==='servicos' && densidade==='baixa'){
+    pen*=0.20; notas.push(t('alertSetorTerritorio'));
+  }
+  fat*=pen;
+
+  // Taxas
+  const txIrcRed=(parseFloat(document.getElementById('taxaIrcReduzida').value)||0)/100;
+  const teto=parseFloat(document.getElementById('tetoIrcReduzido').value)||0;
+  const txIrcNorm=(parseFloat(document.getElementById('taxaIrcNormal').value)||0)/100;
+  const txDerrama=(parseFloat(document.getElementById('taxaDerrama').value)||0)/100;
+  const ivaV=parseFloat(document.getElementById('ivaVendas').value);
+  const ivaC=parseFloat(document.getElementById('ivaCompras').value);
+  const isento=(ivaC===0);
+
+  // FSE
+  const fseM=['fseRenda','fseEnergia','fseCombustivel','fseTOC','fseMark','fseSoft','fseOutros']
+    .reduce((s,id)=>s+(parseFloat(document.getElementById(id).value)||0),0);
+  const fseA=fseM*12;
+
+  // Pessoal
+  const numT=parseInt(document.getElementById('numTrabalhadores').value)||0;
+  const salB=parseFloat(document.getElementById('salariosMensais').value)||0;
+  const sAlim=parseFloat(document.getElementById('subAlim').value)||0;
+  const ssb=1+(state.taxes.taxaSsb/100);
+  const pessoalA=numT>0 ? ((salB*14)*ssb*numT)+(sAlim*state.taxes.diasUteis*state.taxes.diasSubAlim*numT) : 0;
+
+  // Capitais
+  const capProp=parseFloat(document.getElementById('capProprio').value)||0;
+  const prazoB=parseInt(document.getElementById('prazoBanco').value)||5;
+
+  // Imobilizado (demo: 1 ativo fixo)
+  const capex=3000, amort=1000;
+  document.getElementById('totalAmortizacoes').textContent=fmt(amort);
+
+  const divida=capex>capProp ? capex-capProp : 0;
+  const amortCap=prazoB>0 ? divida/prazoB : 0;
+
+  // Vetores [_, A1, A2, A3]
+  let vV=[0,fat,fat*(1+txCresc),fat*Math.pow(1+txCresc,2)];
+  let cmvB=gastosM*12*(1+quebra);
+  let vC=[0,cmvB,cmvB*(1+txCresc*0.5),cmvB*Math.pow(1+txCresc*0.5,2)];
+  let vF=[0,fseA,fseA*1.02,fseA*1.04];
+  let vP=[0,pessoalA,pessoalA*1.03,pessoalA*1.05];
+  let vD=[0,amort,amort,amort];
+  let vJ=[0,0,0,0], vI=[0,0,0,0], vL=[0,0,0,0], vR=[0,0,0,0];
+  let vCaixa=[capProp-capex+divida,0,0,0];
+
+  for(let i=1;i<=3;i++){
+    if(divida>0 && i<=prazoB)
+      vJ[i]=(divida-((i-1)*amortCap))*0.052;
+    if(isento){ vC[i]*=1.23; vF[i]*=1.23; }
+
+    const ebitda=vV[i]-vC[i]-vF[i]-vP[i];
+    const rai=ebitda-vD[i]-vJ[i];
+
+    if(rai>0){
+      let imp = rai<=teto ? rai*txIrcRed
+        : (teto*txIrcRed)+((rai-teto)*txIrcNorm);
+      vI[i]=imp+(rai*txDerrama);
+    }
+    vL[i]=rai-vI[i];
+
+    let ent=(vV[i]*(1+ivaV))-((pmr/360)*vV[i]*(1+ivaV))
+      +(i>1?(pmr/360)*vV[i-1]*(1+ivaV):0);
+    if(anoInjecao===i){ ent+=injecao; vR[i]=injecao; }
+
+    const sai=(vC[i]*(1+ivaC))+(vF[i]*(1+ivaC))+vP[i]+vI[i]+vJ[i]
+      +(i<=prazoB?amortCap:0);
+    vCaixa[i]=vCaixa[i-1]+(ent-sai);
+  }
+
+  // Veredicto
+  let erros=[];
+  if(vCaixa[3]<0) erros.push(t('alertInsolv'));
+  if((vL[1]+vL[2]+vL[3])<0) erros.push(t('alertPrejuizo'));
+
+  const vBox=document.getElementById('veredictoBox');
+  const an=document.getElementById('analise');
+  if(erros.length===0){
+    vBox.className='veredicto viavel';
+    vBox.innerHTML='✓ <span id="lblVeredicto">'+t('lblVeredicto')+'</span>';
+    an.innerHTML='<p><strong>'+t('lblParecer')+'</strong> '+t('lblParecerOk')+'</p>'+
+      (notas.length?'<ul>'+notas.map(n=>'<li>'+n+'</li>').join('')+'</ul>':'');
+  } else {
+    vBox.className='veredicto inviavel';
+    vBox.innerHTML='𐄂 <span id="lblVeredictoNeg">'+t('lblVeredictoNeg')+'</span>';
+    an.innerHTML='<p><strong>'+t('lblParecerNeg')+'</strong></p><ul>'+
+      erros.map(e=>'<li>'+e+'</li>').join('')+
+      notas.map(n=>'<li>'+n+'</li>').join('')+'</ul>';
+  }
+
+  renderGraficos(vV,vL,vC,vF,vP,vI,vJ);
+  renderTabela(vV,vC,vF,vP,vD,vJ,vI,vL,vR,vCaixa);
+}
+
+/* ============================================================
+ *  GRÁFICOS
+ * ============================================================ */
+function renderGraficos(vV,vL,vC,vF,vP,vI,vJ){
+  const ctx=document.getElementById('chartEvolucao');
+  if(chartEvolucao) chartEvolucao.destroy();
+  chartEvolucao=new Chart(ctx.getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:[t('thAno1'),t('thAno2'),t('thAno3')],
+      datasets:[
+        {label:t('rowVolume'),data:[vV[1],vV[2],vV[3]],
+         backgroundColor:'rgba(16,185,129,.75)',borderColor:'#10b981',borderWidth:1,order:2},
+        {label:t('rowResultado'),data:[vL[1],vL[2],vL[3]],type:'line',
+         borderColor:'#1e40af',backgroundColor:'#1e40af',borderWidth:2.5,fill:false,
+         tension:.3,order:1}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},
+      scales:{y:{ticks:{font:{size:9},callback:v=>fmtInt(v)}},
+              x:{ticks:{font:{size:10}}}}}
+  });
+
+  const ctx2=document.getElementById('chartCustos');
+  if(chartCustos) chartCustos.destroy();
+  chartCustos=new Chart(ctx2.getContext('2d'),{
+    type:'doughnut',
+    data:{
+      labels:[t('rowCmv'),t('rowFse'),t('rowPessoal'),t('rowImpostos')],
+      datasets:[{
+        data:[vC[1],vF[1],vP[1],vI[1]+vJ[1]],
+        backgroundColor:['#10b981','#f59e0b','#3b82f6','#ef4444'],
+        borderColor:'#fff',borderWidth:3,hoverOffset:10
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{position:'right',labels:{boxWidth:8,font:{size:8},padding:6}},
+        tooltip:{callbacks:{label:function(c){
+          const v=c.raw||0;const tot=c.dataset.data.reduce((a,b)=>a+b,0);
+          const p=tot>0?(v/tot*100).toFixed(1):0;
+          return ' '+c.label+': '+fmt(v)+' ('+p+'%)';
+        }}}}}
+  });
+}
+
+/* ============================================================
+ *  TABELA
+ * ============================================================ */
+function renderTabela(vV,vC,vF,vP,vD,vJ,vI,vL,vR,vCaixa){
+  const tb=document.querySelector('#tabelaPlurianual tbody');
+  tb.innerHTML='';
+  const linhas=[
+    {l:t('rowVolume'),d:[vV[1],vV[2],vV[3]],cls:'',sub:false},
+    {l:t('rowCmv'),d:[vC[1],vC[2],vC[3]],cls:'',sub:false},
+    {l:t('rowFse'),d:[vF[1],vF[2],vF[3]],cls:'',sub:false},
+    {l:t('rowPessoal'),d:[vP[1],vP[2],vP[3]],cls:'',sub:false},
+    {l:t('rowDep'),d:[vD[1],vD[2],vD[3]],cls:'',sub:false},
+    {l:t('rowJuros'),d:[vJ[1],vJ[2],vJ[3]],cls:'',sub:false},
+    {l:t('rowImpostos'),d:[vI[1],vI[2],vI[3]],cls:'',sub:false},
+    {l:t('rowResultado'),d:[vL[1],vL[2],vL[3]],cls:'subtotal',sub:true},
+    {l:t('rowInjecao'),d:[vR[1],vR[2],vR[3]],cls:'highlight',sub:false},
+    {l:t('rowCaixa'),d:[vCaixa[1],vCaixa[2],vCaixa[3]],cls:'subtotal',sub:true}
+  ];
+  linhas.forEach(row=>{
+    const tr=document.createElement('tr');
+    if(row.cls) tr.className=row.cls;
+    const tdL=document.createElement('td');
+    tdL.textContent=row.l;
+    tr.appendChild(tdL);
+    row.d.forEach(v=>{
+      const td=document.createElement('td');
+      td.textContent=fmt(v);
+      if(v<0) td.classList.add('neg');
+      if(v>0 && row.sub) td.classList.add('pos');
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+
+/* ============================================================
+ *  INICIALIZAÇÃO
+ * ============================================================ */
+function init(){
+  resetTaxes();
+  applyCountryDefaults();
+  applyTranslations();
+  calc();
+}
+init();
+</script>
+</body>
+</html>
